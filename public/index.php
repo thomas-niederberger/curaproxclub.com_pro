@@ -3,7 +3,7 @@ require_once __DIR__ . '/partials/config.php';
 require_once __DIR__ . '/api/functions.php';
 
 $pdo = getDbConnection();
-$stmt = $pdo->prepare('SELECT * FROM page WHERE is_dashboard = 1 AND url != \'index.php\' ORDER BY sort_order ASC, id ASC');
+$stmt = $pdo->prepare('SELECT * FROM page WHERE is_dashboard = 1 ORDER BY sort_order ASC, id ASC');
 $stmt->execute();
 $pages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>

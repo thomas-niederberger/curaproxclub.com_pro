@@ -16,23 +16,25 @@ $isVerified = isset($currentProfile['shopify_tag']) && $currentProfile['shopify_
 <main class="md:ml-64 h-auto pt-20">
 <div class="p-8 border-t border-gray-600 dark:border-gray-600">
 
-<section class="antialiased">
-	<div class="mx-auto grid max-w-screen-xl lg:grid-cols-12 lg:gap-12 lg:pb-16 xl:gap-0">
-	  <div class="justify-self-start md:col-span-7 md:text-start">
-		<h1 class="mb-4 text-4xl text-gray-400 dark:text-gray-400 md:max-w-2xl md:text-5xl xl:text-6xl">Verify your Dental Professional status</h1>
-		<p class="mb-3 text-gray-400 dark:text-gray-400 md:mb-12 md:text-lg lg:mb-3 lg:text-xl">To enjoy a <strong>permanent 10% discount</strong>, please verify your status as a licensed dental practitioner. To maintain the integrity of our professional pricing, we reserve the right to revoke professional status and terminate accounts at our sole discretion if our criteria are no longer met.</p>
-		<p class="mb-6 text-gray-400 dark:text-gray-400 md:mb-12 md:text-lg lg:mb-6 lg:text-xl">Verified dental practitioners can use code <strong>PRO10</strong> at any time to receive <strong>10% off</strong> our entire range. These rates match our professional shop pricing, though additional savings are available for bulk inventory purchases.</p>
-		<?php if ($isVerified): ?>
-			<a href="https://curaprox.us/discount/PRO10" target="_blank" class="inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors"><i data-lucide="external-link" class="w-4 h-4 stroke-[2px]"></i> Go to Curaprox Shop</a>
-		<?php else: ?>
-			<button id="verify-btn" class="inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"><i data-lucide="store" class="w-4 h-4 stroke-[2px]"></i> <span id="btn-text">Verify and Shop</span></button>
-		<?php endif; ?>
-	  </div>
-	  <div class="hidden lg:col-span-5 lg:flex">
-		<img src="/assets/img/illustration-dentist-1.png" class="object-contain" alt="Dentist illustration" />
-	  </div>
-	</div>
-</section>
+<div class="prose prose-gray max-w-none 
+			prose-h1:text-gray-400 prose-h1:text-4xl prose-h1:md:text-5xl prose-h1:xl:text-6xl prose-h1:mb-6 prose-h1:font-normal
+			prose-p:text-gray-400 prose-p:md:text-lg prose-p:leading-relaxed prose-p:mb-2 prose-p:mt-0
+			prose-li:text-gray-400 prose-li:md:text-lg prose-li:leading-relaxed prose-li:mb-1 prose-li:mt-0 prose-ul:mb-2 prose-ul:mt-0
+			prose-headings:text-gray-400 prose-headings:font-bold prose-headings:mb-4
+			prose-strong:text-gray-400
+			marker:text-gray-400 dark:prose-invert
+			prose-a:no-underline prose-a:hover:no-underline
+			mb-8 max-w-4xl w-full lg:w-5/8">
+	<h1>Dental Professional Status Verification</h1>
+	<p>To enjoy a permanent <strong>10% discount</strong>, please verify your status as a licensed dental professional.</p>
+	<p>To maintain the integrity of our professional pricing, we reserve the right to revoke professional status and deactivate accounts if eligibility criteria are no longer met.</p>
+	<p>Once verified, dental professionals can use code <strong>PRO10</strong> at any time to receive <strong>10% off</strong> our entire product range. These savings align with our professional pricing, with additional discounts available for bulk purchases.</p>
+	<?php if ($isVerified): ?>
+		<a href="https://curaprox.us/discount/PRO10" target="_blank" class="mt-6 inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors"><i data-lucide="external-link" class="w-4 h-4 stroke-[2px]"></i> Go to Curaprox Shop</a>
+	<?php else: ?>
+		<button id="verify-btn" class="mt-6 inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"><i data-lucide="store" class="w-4 h-4 stroke-[2px]"></i> <span id="btn-text">Verify and Shop</span></button>
+	<?php endif; ?>
+</div>
 
 </div>
 </main>
