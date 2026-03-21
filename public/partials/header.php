@@ -32,16 +32,15 @@ $headerAvatarUrl = $headerAvatar ? '/uploads/avatars/' . htmlspecialchars($heade
 $headerFullName = htmlspecialchars(trim($headerFirstName . ' ' . $headerLastName));
 $headerEmailDisplay = htmlspecialchars($headerEmail);
 ?>
-<nav class="p-4 z-10 fixed left-0 right-0 top-0 bg-gray-200 dark:bg-gray-900 border-r border-gray-600 dark:border-gray-600 max-w-[1600px]">
+<nav class="p-4 z-20 fixed left-0 right-0 top-0 bg-gray-00 dark:bg-gray2-900 border-r border-gray-600 dark:border-gray-600 max-w-[1600px]">
 	<div class="flex flex-wrap justify-between items-center">
 		<div class="flex items-center">
 			<button data-drawer-target="drawer-navigation" data-drawer-toggle="drawer-navigation" aria-controls="drawer-navigation" class="p-2 mr-2 text-gray-600 rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">
 				<i data-lucide="menu" class="w-4 h-4 stroke-[2px]"></i>
 			</button>
-			<a href="/" class="flex items-center mr-4 md:hidden">
+			<a href="/" class="flex items-center md:hidden">
 				<img src="/assets/img/curaprox.svg" class="h-10" alt="CURAPROX" />
 			</a>
-			
 			<div class="hidden md:block md:ml-68">
 				<a href="shop-consumer.php" class="inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors"><i data-lucide="store" class="w-4 h-4 stroke-[2px]"></i> Shop</a>
 			</div>

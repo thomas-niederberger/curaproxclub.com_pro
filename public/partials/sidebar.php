@@ -39,7 +39,7 @@ foreach ($filteredPages as $page) {
 	}
 }
 ?>
-<aside id="drawer-navigation" class="fixed z-20 top-0 left-0 z-40 w-full md:w-64 h-screen pt-14 md:pt-4 transition-transform -translate-x-full md:translate-x-0 bg-gray-800 dark:bg-gray-800" aria-label="Sidenav">
+<aside id="drawer-navigation" class="fixed z-10 top-0 left-0 w-full md:w-64 h-screen pt-14 md:pt-4 transition-transform -translate-x-full md:translate-x-0 bg-gray-800 dark:bg-gray-800" aria-label="Sidenav">
 	<div class="hidden md:flex items-center justify-center w-full px-4 mb-6">
 		<a href="/" class="block w-full">
 			<img src="/assets/img/curaprox.svg" class="w-full h-auto" alt="CURAPROX" />
