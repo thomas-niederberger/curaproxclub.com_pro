@@ -1,0 +1,43 @@
+# IDE and Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+sftp-config.json
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Dependency directories
+/vendor/
+/node_modules/
+
+# Log files
+/logs/
+*.log
+
+# Cache and temporary files
+*.cache
+*.tmp
+
+# Compiled files
+*.min.js
+*.min.css
+
+# Upload directories
+/_v1/
+/logs/
+/sql/
+/uploads/
+
+# Local directories
+/src2/
+
+# Config files
+sftp-config.json
