@@ -49,7 +49,8 @@ foreach ($filteredPages as $page) {
 		<ul class="space-y-2">
 			<?php foreach ($parentPages as $parent): ?>
 				<?php $hasChildren = isset($childPages[$parent['id']]) && !empty($childPages[$parent['id']]); ?>
-				<li>
+				<?php $showSeparator = $parent['sort_order'] > 100; ?>
+				<li <?= $showSeparator ? 'class="pt-2 mt-2 border-t border-gray-600"' : '' ?>>
 					<?php if ($hasChildren): ?>
 					<?php 
 					$hasActiveChild = false;

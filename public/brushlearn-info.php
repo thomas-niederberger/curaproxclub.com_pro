@@ -1,6 +1,34 @@
 <?php
 require_once __DIR__ . '/partials/config.php';
 require_once __DIR__ . '/api/functions.php';
+
+$pdo = getDbConnection();
+
+// Fetch the most recent booking for the current user
+$booking = null;
+$location = null;
+$formResponse = null;
+
+if ($currentProfile) {
+    $stmt = $pdo->prepare('
+        SELECT b.*, l.city, l.state, l.is_virtual, fr.answers, fr.form_id
+        FROM ohc_booking b
+        LEFT JOIN ohc_location l ON b.location_id = l.id
+        LEFT JOIN form_response fr ON b.form_response_id = fr.id
+        WHERE b.profile_id = ?
+        AND b.status IN ("draft", "booked")
+        ORDER BY b.created_at DESC
+        LIMIT 1
+    ');
+    $stmt->execute([$currentProfile['id']]);
+    $booking = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($booking && $booking['answers']) {
+        $booking['answers'] = json_decode($booking['answers'], true);
+    }
+}
+
+$hasBooking = !empty($booking);
 ?>
 
 <!DOCTYPE html>
@@ -15,58 +43,122 @@ require_once __DIR__ . '/api/functions.php';
 <main class="md:ml-64 h-auto pt-20">
 <div class="p-8 border-t border-gray-600 dark:border-gray-600">
 
-<div class="prose prose-gray max-w-none 
-            prose-h1:text-gray-400 prose-h1:text-4xl prose-h1:md:text-5xl prose-h1:xl:text-6xl prose-h1:mb-6 prose-h1:font-normal
-            prose-p:text-gray-400 prose-p:md:text-lg prose-p:leading-relaxed prose-p:mb-2 prose-p:mt-0
-            prose-li:text-gray-400 prose-li:md:text-lg prose-li:leading-relaxed prose-li:mb-1 prose-li:mt-0 prose-ul:mb-2 prose-ul:mt-0
-            prose-headings:text-gray-400 prose-headings:font-bold prose-headings:mb-4
-			prose-strong:text-gray-400
-            marker:text-gray-400 dark:prose-invert
-			prose-a:no-underline prose-a:hover:no-underline
-			mb-8 max-w-4xl w-full lg:w-5/8">
-    <h1>Book a Brush & Learn</h1>
-    <p>Taking good care of one's oral health has a direct impact on how patients feel—both physically and mentally. When patients are empowered through education, they are better equipped to maintain lifelong oral health. Every patient deserves access to the highest standard of education, regardless of age.</p>
-    <p>Through our <strong>Curaprox Brush & Learn Educator Program</strong>, we provide hands-on learning experiences designed to elevate patient care and strengthen your team's confidence.</p>
-    <p>During this session, your team will:</p>
-    <ul>
-        <li><strong>Master Curaprox's systems-based approach to dentistry</strong> and confidently choose the right products for every patient</li>
-        <li><strong>Explore evidence-based solutions for biofilm-related conditions</strong>, including individualized mechanical biofilm control strategies</li>
-        <li><strong>Level up interdental cleaning techniques</strong> and learn why they're essential for long-term oral health success</li>
-        <li><strong>Boost patient engagement and compliance</strong> using practical education strategies that strengthen trust and improve outcomes</li>
-        <li><strong>Walk away empowered</strong> with easy-to-teach techniques you can confidently share chairside to enhance both patient satisfaction and provider fulfillment</li>
-    </ul>
-    <p>This session provides your entire team with hands-on guidance and helps align your patient education approach.</p>
-</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+	<div class="lg:col-span-2">
+		<div class="prose prose-gray max-w-none 
+					prose-h1:text-gray-400 prose-h1:text-4xl prose-h1:md:text-5xl prose-h1:xl:text-6xl prose-h1:mb-0 prose-h1:font-normal">
+			<h1>Curaprox Brush & Learn</h1>
+		</div>
+	</div>
 
-<nav aria-label="Progress" class="mx-auto py-4 mb-8 bg-gray-700 dark:bg-gray-700 p-6 rounded-lg">
-	<ol role="list" class="space-y-4 md:flex md:space-y-0 md:space-x-8">
-		
-		<li class="md:flex-1">
-			<a href="#" class="group flex flex-col border-l-4 border-orange py-2 pl-4 md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4">
-				<span class="text-xs font-semibold uppercase text-orange group-hover:text-orange/80">Step 1</span>
-				<span class="text-sm font-medium dark:text-white">Location</span>
-			</a>
-		</li>
-		<li class="md:flex-1">
-			<a href="#" class="group flex flex-col border-l-4 border-gray-200 py-2 pl-4 hover:border-orange md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4">
-				<span class="text-xs font-semibold uppercase text-gray-400 group-hover:text-orange/80">Step 2</span>
-				<span class="text-sm font-medium text-gray-400 group-hover:text-orange/80">Application</span>
-			</a>
-		</li>
-		<li class="md:flex-1">
-			<a href="#" class="group flex flex-col border-l-4 border-gray-200 py-2 pl-4 hover:border-orange md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4">
-				<span class="text-xs font-semibold uppercase text-gray-400 group-hover:text-orange/80">Step 3</span>
-				<span class="text-sm font-medium text-gray-400 group-hover:text-orange/80">Questions</span>
-			</a>
-		</li>
-		<li class="md:flex-1">
-			<a href="#" class="group flex flex-col border-l-4 border-gray-200 py-2 pl-4 hover:border-orange md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4">
-				<span class="text-xs font-semibold uppercase text-gray-400 group-hover:text-orange/80">Step 4</span>
-				<span class="text-sm font-medium text-gray-400 group-hover:text-orange/80">Confirmation</span>
-			</a>
-		</li>
-	</ol>
-</nav>
+	<div class="lg:col-span-2">
+		<div class="prose prose-gray max-w-none 
+					prose-h1:text-gray-400 prose-h1:text-4xl prose-h1:md:text-5xl prose-h1:xl:text-6xl prose-h1:mb-6 prose-h1:font-normal
+					prose-p:text-gray-400 prose-p:md:text-lg prose-p:leading-relaxed prose-p:mb-2 prose-p:mt-0
+					prose-li:text-gray-400 prose-li:md:text-lg prose-li:leading-relaxed prose-li:mb-1 prose-li:mt-0 prose-ul:mb-2 prose-ul:mt-0
+					prose-headings:text-gray-400 prose-headings:font-bold prose-headings:mb-4
+					prose-strong:text-gray-400
+					marker:text-gray-400 dark:prose-invert
+					prose-a:no-underline prose-a:hover:no-underline
+					mb-8">
+			<p>Taking good care of one's oral health has a direct impact on how patients feel—both physically and mentally. When patients are empowered through education, they are better equipped to maintain lifelong oral health. Every patient deserves access to the highest standard of education, regardless of age.</p>
+			<p>Through our <strong>Curaprox Brush & Learn Educator Program</strong>, we provide hands-on learning experiences designed to elevate patient care and strengthen your team's confidence.</p>
+			<p>During this session, your team will:</p>
+			<ul>
+				<li><strong>Master Curaprox's systems-based approach to dentistry</strong> and confidently choose the right products for every patient</li>
+				<li><strong>Explore evidence-based solutions for biofilm-related conditions</strong>, including individualized mechanical biofilm control strategies</li>
+				<li><strong>Level up interdental cleaning techniques</strong> and learn why they're essential for long-term oral health success</li>
+				<li><strong>Boost patient engagement and compliance</strong> using practical education strategies that strengthen trust and improve outcomes</li>
+				<li><strong>Walk away empowered</strong> with easy-to-teach techniques you can confidently share chairside to enhance both patient satisfaction and provider fulfillment</li>
+			</ul>
+			<p>This session provides your entire team with hands-on guidance and helps align your patient education approach.</p>
+			<?php if (!$hasBooking): ?>
+				<a href="/brushlearn-book.php" class="mt-6 inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors"><i data-lucide="calendar" class="w-4 h-4 stroke-[2px]"></i> Book your Brush & Learn</a>
+			<?php endif; ?>
+		</div>
+	</div>
+
+	<div class="lg:col-span-1">
+		<div class="bg-gray-700 dark:bg-gray-700 rounded-lg p-6 sticky top-24">
+			<h3 class="mb-4 text-xl text-gray-400 dark:text-gray-400">Your Booking</h3>
+			
+			<?php if ($hasBooking): ?>
+				<!-- Booking Details -->
+				<div class="space-y-4">
+					<?php if ($booking['status'] === 'draft'): ?>
+						<!-- Draft Status - In Progress -->
+						<div class="mb-4">
+							<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">
+								<i data-lucide="clock" class="w-3 h-3 mr-1"></i> Booking in progress
+							</span>
+						</div>
+						<div class="p-4 bg-gray-600 rounded-lg">
+							<p class="text-sm text-gray-400 mb-3">Your booking is not yet complete. Continue where you left off:</p>
+							<a href="/brushlearn-book.php" class="w-full inline-flex items-center justify-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors">
+								<i data-lucide="edit" class="w-4 h-4 stroke-[2px]"></i> Continue Booking
+							</a>
+						</div>
+					<?php endif; ?>
+					
+					<?php if ($booking['status'] === 'booked' && $booking['city'] && $booking['state']): ?>
+						<div>
+							<label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Location</label>
+							<p class="text-gray-400">
+								<?= htmlspecialchars($booking['city']) ?>, <?= htmlspecialchars($booking['state']) ?>
+								<?php if ($booking['is_virtual']): ?>
+									<span class="text-sm text-gray-400">(Virtual)</span>
+								<?php endif; ?>
+							</p>
+						</div>
+					<?php endif; ?>
+					
+					<?php if ($booking['status'] === 'booked' && $booking['booking_date']): ?>
+						<div>
+							<label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Date & Time</label>
+							<p class="text-gray-400">
+								<?php
+								$date = new DateTime($booking['booking_date']);
+								$date->setTimezone(new DateTimeZone('America/Los_Angeles')); // Adjust to user's timezone
+								echo $date->format('F j, Y \a\t g:i A T');
+								?>
+							</p>
+						</div>
+					<?php endif; ?>
+					
+					<?php if ($booking['status'] === 'booked'): ?>
+						<div>
+							<label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Status</label>
+							<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+								<i data-lucide="check-circle" class="w-3 h-3 mr-1"></i> Confirmed
+							</span>
+						</div>
+					<?php endif; ?>
+				</div>
+
+				<?php if ($booking['status'] === 'booked'): ?>
+					<!-- Action Buttons for Confirmed Bookings -->
+					<div class="mt-6 pt-6 border-t border-gray-600">
+						<p class="text-xs text-gray-400 mb-3">Need to make changes?</p>
+						<a href="mailto:support@curaden.us?subject=Brush%20%26%20Learn%20Booking%20Change&body=Booking%20ID:%20<?= urlencode($booking['cal_booking_id'] ?? $booking['id']) ?>" 
+						   class="w-full inline-flex items-center justify-center px-4 gap-2 py-2 bg-gray-600 hover:bg-gray-500 text-gray-400 font-medium rounded-full transition-colors">
+							<i data-lucide="mail" class="w-4 h-4 stroke-[2px]"></i> Contact Support
+						</a>
+					</div>
+				<?php endif; ?>
+			<?php else: ?>
+				<!-- No Booking State -->
+				<div class="flex items-center gap-4">
+					<div class="w-16 h-16 flex-shrink-0 rounded-full bg-gray-600 flex items-center justify-center">
+						<i data-lucide="calendar-x" class="w-8 h-8 text-gray-400"></i>
+					</div>
+					<div class="flex-1">
+						<p class="text-gray-400">No booking available</p>
+					</div>
+				</div>
+			<?php endif; ?>
+		</div>
+	</div>
+</div>
 
 </div>
 </main>
