@@ -1828,6 +1828,11 @@
       width: calc(5 / 8 * 100%);
     }
   }
+  .lg\:w-6\/8 {
+    @media (width >= 64rem) {
+      width: calc(6 / 8 * 100%);
+    }
+  }
   .lg\:w-12 {
     @media (width >= 64rem) {
       width: calc(var(--spacing) * 12);
@@ -2146,6 +2151,11 @@
         font-size: var(--text-lg);
         line-height: var(--tw-leading, var(--text-lg--line-height));
       }
+    }
+  }
+  .prose-img\:mt-0 {
+    & :is(:where(img):not(:where([class~="not-prose"],[class~="not-prose"] *))) {
+      margin-top: calc(var(--spacing) * 0);
     }
   }
 }

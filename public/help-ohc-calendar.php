@@ -12,7 +12,7 @@ require_once __DIR__ . '/partials/config.php';
 <main class="md:ml-64 h-auto pt-20">
 <div class="p-8 border-t border-gray-600 dark:border-gray-600">
 
-<section class="max-w-4xl w-full lg:w-5/8">
+<section class="max-w-4xl w-full lg:w-6/8">
 	<div class="<?= $theme->getHeaderClasses() ?>">
 		<h1><?= htmlspecialchars($pageHeader) ?></h1>
 	</div>

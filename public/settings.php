@@ -20,12 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
     
     $input = json_decode(file_get_contents('php://input'), true);
     
-    if (isset($input['cal_url']) || isset($input['cal_token']) || isset($input['cal_webhook'])) {
-        $stmt = $pdo->prepare('UPDATE profile SET cal_url = ?, cal_token = ?, cal_webhook = ? WHERE id = ?');
+    if (isset($input['cal_url']) || isset($input['cal_token'])) {
+        $stmt = $pdo->prepare('UPDATE profile SET cal_url = ?, cal_token = ? WHERE id = ?');
         $stmt->execute([
             $input['cal_url'] ?? '',
             $input['cal_token'] ?? '',
-            $input['cal_webhook'] ?? '',
             $currentProfileId
         ]);
         
@@ -73,7 +72,6 @@ $licenceVerified = $currentProfile['licence_verified'];
 $theme = $currentProfile['theme'] ?? 'light';
 $calUrl = htmlspecialchars($currentProfile['cal_url'] ?? '');
 $calToken = htmlspecialchars($currentProfile['cal_token'] ?? '');
-$calWebhook = htmlspecialchars($currentProfile['cal_webhook'] ?? '');
 ?>
 
 <!DOCTYPE html>
@@ -163,6 +161,7 @@ $calWebhook = htmlspecialchars($currentProfile['cal_webhook'] ?? '');
 			<!-- Cal.com Settings -->
 			<div class="dark:bg-gray-700 bg-gray-700 rounded-lg p-6">
 				<h3 class="text-xl font-bold text-gray-400 mb-6">Cal.com Integration</h3>
+				<p class="mb-4">The article <a href="help-ohc-calendar.php" class="text-orange">"OHC Calendar"</a> will guide you trough the Cal.com connection.</p>
 				<?php if ($message && $_GET['msg'] === 'calcom'): ?>
 				<div class="mb-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg">
 					<p class="text-green-400 text-sm"><?= htmlspecialchars($message) ?></p>
@@ -177,10 +176,6 @@ $calWebhook = htmlspecialchars($currentProfile['cal_webhook'] ?? '');
 						<div>
 							<label class="block text-sm font-medium text-gray-400 mb-2">Token</label>
 							<input type="text" name="cal_token" value="<?= $calToken ?>" class="w-full px-4 py-2 bg-gray-500 dark:bg-gray-500 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange focus:border-transparent text-gray-400 ">
-						</div>
-						<div>
-							<label class="block text-sm font-medium text-gray-400 mb-2">Webhook</label>
-							<input type="text" name="cal_webhook" value="<?= $calWebhook ?>" class="w-full px-4 py-2 bg-gray-500 dark:bg-gray-500 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange focus:border-transparent text-gray-400 ">
 						</div>
 					</div>
 					<button type="submit" class="cursor-pointer inline-flex gap-2 items-center px-6 py-2 bg-gray-500 hover:bg-orange text-gray-400 font-medium rounded-full transition-colors hover:text-white">
@@ -201,8 +196,7 @@ document.getElementById('calcomForm').addEventListener('submit', async function(
 	const formData = new FormData(this);
 	const data = {
 		cal_url: formData.get('cal_url'),
-		cal_token: formData.get('cal_token'),
-		cal_webhook: formData.get('cal_webhook')
+		cal_token: formData.get('cal_token')
 	};
 	
 	try {

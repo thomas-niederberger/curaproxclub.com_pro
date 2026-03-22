@@ -31,6 +31,7 @@ class CuraproxTheme {
                 prose-strong:text-gray-400
                 marker:text-gray-400 dark:prose-invert
                 prose-a:no-underline prose-a:hover:no-underline prose-a:text-orange prose-a:hover:text-gray-400
+                prose-img:mt-0
                 mb-8";
     }
 
