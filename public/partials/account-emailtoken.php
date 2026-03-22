@@ -31,7 +31,7 @@ function sendMagicLinkEmail($toEmail, $toName, $magicLink) {
 				<div>
 					<h2 style='color: #003da5;font-weight: 300;'>The Portal <strong>WELCOME</strong></h2>
 					<p>Hi {$toName},</p>
-					<p>Click the button below to securely log in to your account.<br>This link will expire in 15 minutes.</p>
+					<p>Click the button below to securely log in to your account. For your security, this link will expire in 15 minutes. If your link has expired, please request a new one at: https://pro.curaproxclub.com/.</p>
 					<div style='margin: 30px 0;'>
 						<a href='{$magicLink}' style='background-color: #003da5; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;'>Log In to The Portal</a>
 					</div>
