@@ -50,7 +50,7 @@ foreach ($allPages as $page) {
 
 <section class="max-w-4xl w-full lg:w-5/8">
 	<div class="<?= $theme->getHeaderClasses() ?>">
-		<h1><?= htmlspecialchars($pageHeader) ?>, <?= htmlspecialchars($currentProfile['first_name'] ?? '') ?>.</h1>
+		<h1><?= htmlspecialchars($pageHeader) ?></h1>
 	</div>
 	<button type="button" class="inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors btn-add-page">
 		<i data-lucide="plus" class="w-4 h-4 stroke-[2px]"></i> Add Page
