@@ -1,7 +1,5 @@
 <?php
 require_once __DIR__ . '/partials/config.php';
-require_once __DIR__ . '/api/functions.php';
-
 $pdo = getDbConnection();
 
 // Fetch the most recent booking for the current user
@@ -47,7 +45,7 @@ $hasBooking = !empty($booking);
 	<div class="lg:col-span-2">
 		<div class="prose prose-gray max-w-none 
 					prose-h1:text-gray-400 prose-h1:text-4xl prose-h1:md:text-5xl prose-h1:xl:text-6xl prose-h1:mb-0 prose-h1:font-normal">
-			<h1>Curaprox Brush & Learn</h1>
+			<h1><?= htmlspecialchars($pageHeader) ?></h1>
 		</div>
 	</div>
 
@@ -61,17 +59,7 @@ $hasBooking = !empty($booking);
 					marker:text-gray-400 dark:prose-invert
 					prose-a:no-underline prose-a:hover:no-underline
 					mb-8">
-			<p>Taking good care of one's oral health has a direct impact on how patients feel—both physically and mentally. When patients are empowered through education, they are better equipped to maintain lifelong oral health. Every patient deserves access to the highest standard of education, regardless of age.</p>
-			<p>Through our <strong>Curaprox Brush & Learn Educator Program</strong>, we provide hands-on learning experiences designed to elevate patient care and strengthen your team's confidence.</p>
-			<p>During this session, your team will:</p>
-			<ul>
-				<li><strong>Master Curaprox's systems-based approach to dentistry</strong> and confidently choose the right products for every patient</li>
-				<li><strong>Explore evidence-based solutions for biofilm-related conditions</strong>, including individualized mechanical biofilm control strategies</li>
-				<li><strong>Level up interdental cleaning techniques</strong> and learn why they're essential for long-term oral health success</li>
-				<li><strong>Boost patient engagement and compliance</strong> using practical education strategies that strengthen trust and improve outcomes</li>
-				<li><strong>Walk away empowered</strong> with easy-to-teach techniques you can confidently share chairside to enhance both patient satisfaction and provider fulfillment</li>
-			</ul>
-			<p>This session provides your entire team with hands-on guidance and helps align your patient education approach.</p>
+			<?= $pageDescription ?>
 			<?php if (!$hasBooking): ?>
 				<a href="/brushlearn-book.php" class="mt-6 inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors"><i data-lucide="calendar" class="w-4 h-4 stroke-[2px]"></i> Book your Brush & Learn</a>
 			<?php endif; ?>

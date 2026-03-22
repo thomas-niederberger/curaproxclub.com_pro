@@ -15,8 +15,15 @@ foreach ($allPages as $page) {
 	if ($isAdmin) {
 		$filteredPages[] = $page;
 	} else {
+		// Decode required_role JSON array
+		$requiredRoles = [];
+		if (!empty($page['required_role'])) {
+			$decoded = json_decode($page['required_role'], true);
+			$requiredRoles = is_array($decoded) ? $decoded : [$page['required_role']];
+		}
+		
 		// Other users see pages without required_role or matching their role
-		if (empty($page['required_role']) || $page['required_role'] === $userRole) {
+		if (empty($requiredRoles) || in_array($userRole, $requiredRoles)) {
 			$filteredPages[] = $page;
 		}
 	}
@@ -47,9 +54,13 @@ foreach ($filteredPages as $page) {
 	</div>
 	<div class="overflow-y-auto pt-12 md:pt-4 px-3 h-full">
 		<ul class="space-y-2">
-			<?php foreach ($parentPages as $parent): ?>
-				<?php $hasChildren = isset($childPages[$parent['id']]) && !empty($childPages[$parent['id']]); ?>
-				<?php $showSeparator = $parent['sort_order'] > 100; ?>
+			<?php 
+			$separatorShown = false;
+			foreach ($parentPages as $parent): 
+				$hasChildren = isset($childPages[$parent['id']]) && !empty($childPages[$parent['id']]);
+				$showSeparator = !$separatorShown && $parent['sort_order'] > 100;
+				if ($showSeparator) $separatorShown = true;
+			?>
 				<li <?= $showSeparator ? 'class="pt-2 mt-2 border-t border-gray-600"' : '' ?>>
 					<?php if ($hasChildren): ?>
 					<?php 

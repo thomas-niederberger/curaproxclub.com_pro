@@ -77,27 +77,44 @@ foreach ($forms as $form) {
 </div>
 
 <?php if (!$hasBookedBooking): ?>
-<div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2">
+<div class="grid grid-cols-1 md:grid-cols-5 gap-2 mb-2">
 	<div class="bg-gray-700 dark:bg-gray-700 rounded-lg p-4 border border-gray-700">
 		<span class="block text-xs font-semibold uppercase text-orange mb-1">Step 1</span>
-		<span class="block text-sm font-bold text-orange">Location</span>
+		<span class="block text-sm font-bold text-orange">Profile</span>
 	</div>
 	<div class="bg-gray-700 dark:bg-gray-700 rounded-lg p-4 border border-gray-700">
 		<span class="block text-xs font-semibold uppercase text-gray-400 mb-1">Step 2</span>
-		<span class="block text-sm font-bold text-gray-400">Questions</span>
+		<span class="block text-sm font-bold text-gray-400">Location</span>
 	</div>
 	<div class="bg-gray-700 dark:bg-gray-700 rounded-lg p-4 border border-gray-700">
 		<span class="block text-xs font-semibold uppercase text-gray-400 mb-1">Step 3</span>
-		<span class="block text-sm font-bold text-gray-400">Date & Time</span>
+		<span class="block text-sm font-bold text-gray-400">Questions</span>
 	</div>
 	<div class="bg-gray-700 dark:bg-gray-700 rounded-lg p-4 border border-gray-700">
 		<span class="block text-xs font-semibold uppercase text-gray-400 mb-1">Step 4</span>
+		<span class="block text-sm font-bold text-gray-400">Date & Time</span>
+	</div>
+	<div class="bg-gray-700 dark:bg-gray-700 rounded-lg p-4 border border-gray-700">
+		<span class="block text-xs font-semibold uppercase text-gray-400 mb-1">Step 5</span>
 		<span class="block text-sm font-bold text-gray-400">Confirmation</span>
 	</div>
 </div>
 
-<!-- Step 1: Location Selection -->
-<div id="step-location" class="bg-gray-700 dark:bg-gray-700 rounded-lg p-6 mb-2">
+<!-- Step 1: Profile Information -->
+<div id="step-profile" class="bg-gray-700 dark:bg-gray-700 rounded-lg p-6 mb-2">
+	<h3 class="mb-2 text-xl text-gray-400 dark:text-gray-400">Your Profile Information</h3>
+	<p class="mb-4 text-gray-400 dark:text-gray-400">Please complete or update your profile information to continue with your booking.</p>
+	
+	<script src="https://js-eu1.hsforms.net/forms/embed/developer/27229630.js" defer></script>
+	<div class="hs-form-html" 
+		 data-region="eu1" 
+		 data-form-id="eae6b326-2d0c-4534-b652-69dd49011c1f" 
+		 data-portal-id="27229630">
+	</div>
+</div>
+
+<!-- Step 2: Location Selection -->
+<div id="step-location" class="bg-gray-700 dark:bg-gray-700 rounded-lg p-6 mb-2 hidden">
 	<h3 class="mb-2 text-xl text-gray-400 dark:text-gray-400">Choose your Location</h3>
 	<p class="mb-4 text-gray-400 dark:text-gray-400">We're currently offering this training in select locations. Check back soon for updates on when we'll be expanding to more areas.</p>
 	<div class="mb-6">
@@ -122,7 +139,7 @@ foreach ($forms as $form) {
 	</button>
 </div>
 
-<!-- Step 2: Virtual Form Questions -->
+<!-- Step 3: Virtual Form Questions -->
 <div id="step-questions-virtual" class="bg-gray-700 dark:bg-gray-700 rounded-lg p-6 mb-2 hidden">
 	<h3 class="mb-2 text-xl text-gray-400 dark:text-gray-400">Answer the questions</h3>
 	<p class="mb-4 text-gray-400 dark:text-gray-400">Please answer the following questions to help us prepare for your virtual Brush & Learn session.</p>
@@ -165,7 +182,7 @@ foreach ($forms as $form) {
 	</button>
 </div>
 
-<!-- Step 2: In-Person Form Questions -->
+<!-- Step 3: In-Person Form Questions -->
 <div id="step-questions-inperson" class="bg-gray-700 dark:bg-gray-700 rounded-lg p-6 mb-2 hidden">
 	<h3 class="mb-2 text-xl text-gray-400 dark:text-gray-400">Answer the questions</h3>
 	<p class="mb-4 text-gray-400 dark:text-gray-400">Please answer the following questions to help us prepare for your in-person Brush & Learn session.</p>
@@ -208,7 +225,7 @@ foreach ($forms as $form) {
 	</button>
 </div>
 
-<!-- Step 3: Date & Time Selection -->
+<!-- Step 4: Date & Time Selection -->
 <div id="step-datetime" class="bg-gray-700 dark:bg-gray-700 rounded-lg p-6 mb-2 hidden">
 	<h3 class="mb-2 text-xl text-gray-400 dark:text-gray-400">Choose your date and time</h3>
 	<p class="mb-4 text-gray-400 dark:text-gray-400">Select a date and time that works best for you and confirm your session.</p>
@@ -314,7 +331,7 @@ foreach ($forms as $form) {
 				if (result.success) {
 					console.log('Booking confirmed in database');
 					
-					// Navigate directly to Step 4 (Confirmation)
+					// Navigate directly to Step 5 (Confirmation)
 					setTimeout(() => {
 						const stepDatetime = document.getElementById('step-datetime');
 						const stepConfirmation = document.getElementById('step-confirmation');
@@ -324,10 +341,11 @@ foreach ($forms as $form) {
 						
 						// Update step indicator
 						const stepIndicators = {
-							location: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-4 > div:nth-child(1)'),
-							questions: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-4 > div:nth-child(2)'),
-							datetime: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-4 > div:nth-child(3)'),
-							confirmation: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-4 > div:nth-child(4)')
+							profile: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-5 > div:nth-child(1)'),
+							location: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-5 > div:nth-child(2)'),
+							questions: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-5 > div:nth-child(3)'),
+							datetime: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-5 > div:nth-child(4)'),
+							confirmation: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-5 > div:nth-child(5)')
 						};
 						
 						Object.keys(stepIndicators).forEach(key => {
@@ -371,7 +389,7 @@ foreach ($forms as $form) {
 
 <?php endif; // End of !$hasBookedBooking ?>
 
-<!-- Step 4: Confirmation -->
+<!-- Step 5: Confirmation -->
 <div id="step-confirmation" class="bg-gray-700 dark:bg-gray-700 rounded-lg p-6 mb-2 <?= $hasBookedBooking ? '' : 'hidden' ?>">
 	<?php if ($hasBookedBooking && $bookedBooking): ?>
 		<!-- Show booking details for returning users -->
@@ -457,6 +475,7 @@ foreach ($forms as $form) {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 	// Elements
+	const stepProfile = document.getElementById('step-profile');
 	const locationSelect = document.getElementById('location-select');
 	const stepLocation = document.getElementById('step-location');
 	const stepQuestionsVirtual = document.getElementById('step-questions-virtual');
@@ -534,10 +553,11 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	// Step progress indicators
 	const stepIndicators = {
-		location: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-4 > div:nth-child(1)'),
-		questions: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-4 > div:nth-child(2)'),
-		datetime: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-4 > div:nth-child(3)'),
-		confirmation: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-4 > div:nth-child(4)')
+		profile: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-5 > div:nth-child(1)'),
+		location: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-5 > div:nth-child(2)'),
+		questions: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-5 > div:nth-child(3)'),
+		datetime: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-5 > div:nth-child(4)'),
+		confirmation: document.querySelector('.grid.grid-cols-1.md\\:grid-cols-5 > div:nth-child(5)')
 	};
 	
 	function updateStepIndicator(step) {
@@ -607,8 +627,38 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	});
 	
-	// Step 1 -> Step 2 (Location -> Questions)
-	btnLocationNext.addEventListener('click', function() {
+	// HubSpot form submission listener - automatically navigate to Step 2
+	window.addEventListener("hs-form-event:on-submission:success", async event => {
+		console.log('HubSpot form submitted successfully');
+		
+		// Update profile timestamp
+		try {
+			const response = await fetch('profile-edit.php', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-Requested-With': 'XMLHttpRequest'
+				}
+			});
+			const result = await response.json();
+			if (result.success) {
+				console.log('Profile timestamp updated successfully');
+			}
+		} catch (error) {
+			console.error('Error updating profile timestamp:', error);
+		}
+		
+		// Automatically navigate to Step 2 (Location)
+		setTimeout(() => {
+			stepProfile.classList.add('hidden');
+			stepLocation.classList.remove('hidden');
+			updateStepIndicator('location');
+			lucide.createIcons();
+		}, 500);
+	});
+	
+	// Step 2 -> Step 3 (Location -> Questions)
+	btnLocationNext.addEventListener('click', async function() {
 		if (!selectedLocation) return;
 		
 		stepLocation.classList.add('hidden');
@@ -623,7 +673,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		lucide.createIcons();
 	});
 	
-	// Step 2 -> Step 1 (Questions -> Location)
+	// Step 3 -> Step 2 (Questions -> Location)
 	btnQuestionsVirtualBack.addEventListener('click', function() {
 		stepQuestionsVirtual.classList.add('hidden');
 		stepLocation.classList.remove('hidden');
@@ -798,7 +848,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		lucide.createIcons();
 	});
 	
-	// Step 3 -> Step 2 (Date & Time -> Questions)
+	// Step 4 -> Step 3 (Date & Time -> Questions)
 	btnDatetimeBack.addEventListener('click', function() {
 		stepDatetime.classList.add('hidden');
 		
@@ -813,8 +863,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 	
 	
-	// Initialize with location step active
-	updateStepIndicator('location');
+	// Initialize with profile step active
+	updateStepIndicator('profile');
 	
 	// Disable location next button initially
 	btnLocationNext.disabled = true;

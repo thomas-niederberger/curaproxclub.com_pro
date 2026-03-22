@@ -1,36 +1,8 @@
 <?php
-// Fetch user display data for header
-$headerFirstName = '';
-$headerLastName = '';
-$headerEmail = '';
-$headerAvatar = '';
-$headerInitials = '';
-
-if (isset($currentProfile)) {
-    // Try to get HubSpot data if available
-    if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
-        require_once __DIR__ . '/../api/functions.php';
-        $headerHubspotData = getHubSpotB2BData($currentProfile['id_hubspot_b2b_contact']);
-        
-        if ($headerHubspotData && !empty($headerHubspotData['contact'])) {
-            $headerFirstName = $headerHubspotData['contact']['firstname'] ?? '';
-            $headerLastName = $headerHubspotData['contact']['lastname'] ?? '';
-            $headerEmail = $headerHubspotData['contact']['email'] ?? '';
-        }
-    }
-    
-    // Fallback to database values
-    if (!$headerFirstName) $headerFirstName = $currentProfile['first_name'] ?? '';
-    if (!$headerLastName) $headerLastName = $currentProfile['last_name'] ?? '';
-    if (!$headerEmail) $headerEmail = $currentProfile['email'] ?? '';
-    
-    $headerAvatar = $currentProfile['avatar'] ?? '';
-    $headerInitials = strtoupper(substr($headerFirstName, 0, 1) . substr($headerLastName, 0, 1));
-}
-
-$headerAvatarUrl = $headerAvatar ? '/uploads/avatars/' . htmlspecialchars($headerAvatar) : '';
-$headerFullName = htmlspecialchars(trim($headerFirstName . ' ' . $headerLastName));
-$headerEmailDisplay = htmlspecialchars($headerEmail);
+	$headerFullName     = $currentUserName ?: 'User';
+	$headerEmailDisplay = htmlspecialchars($currentProfile['email'] ?? '');
+	$headerInitials     = $currentUserInitials ?: '??';
+	$headerAvatarUrl    = $currentUserAvatar;
 ?>
 <nav class="p-4 z-20 fixed left-0 right-0 top-0 bg-gray-00 dark:bg-gray2-900 border-r border-gray-600 dark:border-gray-600 max-w-[1600px]">
 	<div class="flex flex-wrap justify-between items-center">

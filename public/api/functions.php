@@ -363,3 +363,50 @@ function getHubSpotB2BData($contactId, $companyId = null) {
     
     return $data;
 }
+
+/**
+ * Fetch page data from database and parse markdown description
+ */
+function getPageData($url = null) {
+    global $parsedown;
+    
+    // Determine current URL if not provided
+    if ($url === null) {
+        $url = basename($_SERVER['PHP_SELF']);
+    }
+    
+    $pdo = getDbConnection();
+    
+    // Updated Query: Added header, description_short, and required_role
+    $stmt = $pdo->prepare('SELECT header, name, description, description_short, required_role FROM page WHERE url = ? LIMIT 1');
+    $stmt->execute([$url]);
+    $pageData = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    // Fallback if page is not found
+    if (!$pageData) {
+        return [
+            'header' => 'Page Not Found',
+            'description_html' => '<p>Sorry, this content is not available.</p>',
+            'roles' => []
+        ];
+    }
+
+    // Parse the Markdown into HTML
+    if (!$parsedown) {
+        require_once 'Parsedown.php';
+        $parsedown = new \Parsedown();
+    }
+    
+    $descriptionHtml = $parsedown->text($pageData['description'] ?? '');
+    
+    // Return the clean data to your template
+    return [
+        'header'            => $pageData['header'],
+        'name'              => $pageData['name'],
+        'icon'              => $pageData['icon'] ?? '',
+        'description_short' => $pageData['description_short'] ?? '',
+        'description_raw'   => $pageData['description'] ?? '',
+        'description_html'  => $descriptionHtml,
+        'roles'             => json_decode($pageData['required_role'] ?? '[]', true)
+    ];
+}
