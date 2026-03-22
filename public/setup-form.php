@@ -21,6 +21,7 @@ unset($form);
 <?php include 'partials/sidebar.php'; ?>
 <main class="md:ml-64 h-auto pt-20">
 <div class="p-8 border-t border-gray-600 dark:border-gray-600">
+
 <section class="max-w-4xl w-full lg:w-5/8">
 	<div class="<?= $theme->getHeaderClasses() ?>">
 		<h1><?= htmlspecialchars($pageHeader) ?></h1>
@@ -42,13 +43,13 @@ unset($form);
         <?php foreach ($form['questions'] as $question): ?>
         <li class="flex items-center gap-3 p-3 bg-gray-600 rounded-lg" data-question-id="<?= htmlspecialchars($question['id']) ?>" data-form-id="<?= $form['id'] ?>">
           <span class="sortable-handle cursor-move">
-            <i data-lucide="grip-vertical" class="w-5 h-5 text-gray-400"></i>
+            <i data-lucide="grip-vertical" class="w-4 h-4 text-gray-400"></i>
           </span>
           <span class="flex-1 text-gray-400 truncate"><?= htmlspecialchars($question['label']) ?></span>
           <div class="flex items-center gap-2">
-            <span class="px-2 py-1 text-xs bg-gray-500 text-gray-300 rounded-full"><?= ucfirst($question['type']) ?></span>
+            <span class="px-2 py-1 text-xs bg-gray-500 text-gray-400 rounded-full"><?= ucfirst($question['type']) ?></span>
             <?php if ($question['required']): ?>
-            <span class="px-2 py-1 text-xs bg-blue-500 text-white rounded-full">Mandatory</span>
+            <span class="px-2 py-1 text-xs bg-gray-500 text-gray-400 rounded-full">Mandatory</span>
             <?php endif; ?>
             <button type="button" class="p-2 hover:bg-gray-500 rounded-lg btn-edit-question" data-form-id="<?= $form['id'] ?>" data-question-id="<?= htmlspecialchars($question['id']) ?>" data-question-label="<?= htmlspecialchars($question['label']) ?>" data-question-type="<?= htmlspecialchars($question['type']) ?>" data-question-required="<?= $question['required'] ? '1' : '0' ?>">
               <i data-lucide="pencil" class="w-4 h-4 text-gray-400"></i>

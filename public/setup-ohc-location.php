@@ -16,13 +16,15 @@ $locations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <main class="md:ml-64 h-auto pt-20">
 <div class="p-8 border-t border-gray-600 dark:border-gray-600">
 
-<section class="max-w-4xl w-full lg:w-5/8">
-	<div class="<?= $theme->getHeaderClasses() ?>">
+<section class="w-full flex justify-between items-end gap-6">
+	<div class="<?= $theme->getHeaderClasses() ?> flex-1">
 		<h1><?= htmlspecialchars($pageHeader) ?></h1>
 	</div>
-	<button type="button" class="inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors btn-add-location">
-		<i data-lucide="plus" class="w-4 h-4 stroke-[2px]"></i> Add Location
-	</button>
+	<div class="mb-8">
+		<button type="button" class="inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors btn-add-location">
+			<i data-lucide="plus" class="w-4 h-4 stroke-[2px]"></i> Add Location
+		</button>
+	</div>
 </section>
 
 <div class="bg-gray-700 dark:bg-gray-700 rounded-lg overflow-hidden">
