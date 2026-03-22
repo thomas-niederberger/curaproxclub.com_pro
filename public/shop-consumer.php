@@ -1,7 +1,8 @@
 <?php
-	require_once __DIR__ . '/partials/config.php';
-	$isVerified = isset($currentProfile['shopify_tag']) && $currentProfile['shopify_tag'] !== null;
+require_once __DIR__ . '/partials/config.php';
+$isVerified = isset($currentProfile['shopify_tag']) && $currentProfile['shopify_tag'] !== null;
 ?>
+
 <!DOCTYPE html>
 <html class="h-full">
 <?php include 'partials/meta.php'; ?>
@@ -18,10 +19,12 @@
 	</div>
 	<div class="<?= $theme->getContentClasses() ?>">
 		<?= $pageDescription ?>
+	</div>
+	<div>
 		<?php if ($isVerified): ?>
-			<a href="https://curaprox.us/discount/PRO10" target="_blank" class="mt-6 inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors"><i data-lucide="external-link" class="w-4 h-4 stroke-[2px]"></i> Go to Curaprox Shop</a>
+			<a href="https://curaprox.us/discount/PRO10" target="_blank" class="inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors"><i data-lucide="external-link" class="w-4 h-4 stroke-[2px]"></i> Go to Curaprox Shop</a>
 		<?php else: ?>
-			<button id="verify-btn" class="mt-6 inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"><i data-lucide="store" class="w-4 h-4 stroke-[2px]"></i> <span id="btn-text">Verify and Shop</span></button>
+			<button id="verify-btn" class="inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"><i data-lucide="store" class="w-4 h-4 stroke-[2px]"></i> <span id="btn-text">Verify and Shop</span></button>
 		<?php endif; ?>
 	</div>
 </section>

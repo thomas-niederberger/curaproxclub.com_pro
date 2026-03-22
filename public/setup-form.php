@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/partials/config.php';
-require_once __DIR__ . '/api/functions.php';
 
 $pdo = getDbConnection();
 $stmt = $pdo->query('SELECT * FROM form ORDER BY id');
@@ -18,14 +17,15 @@ unset($form);
 <?php include 'partials/meta.php'; ?>
 <body class="antialiased bg-gray-50 dark:bg-gray-900 h-full">
 <div class="max-w-[1600px] h-full bg-gray-200 dark:bg-gray-900 border-r border-gray-600 dark:border-gray-600">
-	
-<?php include 'partials/header.php'; ?>
+	<?php include 'partials/header.php'; ?>
 <?php include 'partials/sidebar.php'; ?>
-
 <main class="md:ml-64 h-auto pt-20">
 <div class="p-8 border-t border-gray-600 dark:border-gray-600">
-
-<h1 class="text-3xl text-gray-400 mb-6">Form Management</h1>
+<section class="max-w-4xl w-full lg:w-5/8">
+	<div class="<?= $theme->getHeaderClasses() ?>">
+		<h1><?= htmlspecialchars($pageHeader) ?>, <?= htmlspecialchars($currentProfile['first_name'] ?? '') ?>.</h1>
+	</div>
+</section>
 
 <div class="space-y-4">
   <?php foreach ($forms as $index => $form): ?>

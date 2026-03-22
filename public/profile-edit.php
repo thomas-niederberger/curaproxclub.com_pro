@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/partials/config.php';
-require_once __DIR__ . '/api/functions.php';
 
 // Handle AJAX request to update profile timestamp
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
@@ -130,7 +129,6 @@ if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
 <div class="max-w-[1600px] h-full bg-gray-200 dark:bg-gray-900 border-r border-gray-600 dark:border-gray-600">
 <?php include 'partials/header.php'; ?>
 <?php include 'partials/sidebar.php'; ?>
-
 <main class="md:ml-64 h-auto pt-20">
 <div class="p-8 border-t border-gray-600 dark:border-gray-600">
     <script>

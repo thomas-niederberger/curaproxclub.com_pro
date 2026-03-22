@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/partials/config.php';
-require_once __DIR__ . '/api/functions.php';
 
 $pdo = getDbConnection();
 $message = '';

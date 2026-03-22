@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/partials/config.php';
-require_once __DIR__ . '/api/functions.php';
 
 $pdo = getDbConnection();
 $stmt = $pdo->query('SELECT * FROM ohc_location ORDER BY state ASC, city ASC');
@@ -12,19 +11,19 @@ $locations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <?php include 'partials/meta.php'; ?>
 <body class="antialiased bg-gray-50 dark:bg-gray-900 h-full">
 <div class="max-w-[1600px] h-full bg-gray-200 dark:bg-gray-900 border-r border-gray-600 dark:border-gray-600">
-	
 <?php include 'partials/header.php'; ?>
 <?php include 'partials/sidebar.php'; ?>
-
 <main class="md:ml-64 h-auto pt-20">
 <div class="p-8 border-t border-gray-600 dark:border-gray-600">
 
-<div class="flex items-center justify-between mb-6">
-	<h1 class="text-3xl text-gray-400">OHC Location Management</h1>
+<section class="max-w-4xl w-full lg:w-5/8">
+	<div class="<?= $theme->getHeaderClasses() ?>">
+		<h1><?= htmlspecialchars($pageHeader) ?>, <?= htmlspecialchars($currentProfile['first_name'] ?? '') ?>.</h1>
+	</div>
 	<button type="button" class="inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors btn-add-location">
 		<i data-lucide="plus" class="w-4 h-4 stroke-[2px]"></i> Add Location
 	</button>
-</div>
+</section>
 
 <div class="bg-gray-700 dark:bg-gray-700 rounded-lg overflow-hidden">
 	<table class="w-full">

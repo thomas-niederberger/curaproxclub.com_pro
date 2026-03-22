@@ -72,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Force dark theme for registration page
 $userTheme = 'dark';
 ?>
+
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <?php include 'partials/meta.php'; ?>

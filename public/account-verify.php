@@ -2,61 +2,61 @@
 $error = null;
 
 if (!isset($_GET['token'])) {
-	$error = 'Invalid login link.';
+$error = 'Invalid login link.';
 } else {
-	require_once __DIR__ . '/partials/config.php';
-	require_once __DIR__ . '/api/functions.php';
+require_once __DIR__ . '/partials/config.php';
+
+$pdo = getDbConnection();
+$token = $_GET['token'];
+
+$stmt = $pdo->prepare('SELECT lt.*, p.id as profile_id, p.first_name, p.last_name, p.email, p.login_last
+						FROM profile_token lt 
+						JOIN profile p ON lt.profile_id = p.id 
+						WHERE lt.token = ? AND lt.used = 0 AND lt.expires_at > NOW()');
+$stmt->execute([$token]);
+$loginToken = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$loginToken) {
+	$error = 'This login link is invalid or has expired. Please request a new one.';
+} else {
+	session_start();
 	
-	$pdo = getDbConnection();
-	$token = $_GET['token'];
+	$stmt = $pdo->prepare('UPDATE profile_token SET used = 1 WHERE id = ?');
+	$stmt->execute([$loginToken['id']]);
 	
-	$stmt = $pdo->prepare('SELECT lt.*, p.id as profile_id, p.first_name, p.last_name, p.email, p.login_last
-						   FROM profile_token lt 
-						   JOIN profile p ON lt.profile_id = p.id 
-						   WHERE lt.token = ? AND lt.used = 0 AND lt.expires_at > NOW()');
-	$stmt->execute([$token]);
-	$loginToken = $stmt->fetch(PDO::FETCH_ASSOC);
+	$sessionToken = bin2hex(random_bytes(32));
+	$sessionExpires = gmdate('Y-m-d H:i:s', strtotime('+30 days'));
 	
-	if (!$loginToken) {
-		$error = 'This login link is invalid or has expired. Please request a new one.';
-	} else {
-		session_start();
-		
-		$stmt = $pdo->prepare('UPDATE profile_token SET used = 1 WHERE id = ?');
-		$stmt->execute([$loginToken['id']]);
-		
-		$sessionToken = bin2hex(random_bytes(32));
-		$sessionExpires = gmdate('Y-m-d H:i:s', strtotime('+30 days'));
-		
-		$stmt = $pdo->prepare('UPDATE profile SET session_token = ?, session_expires = ?, login_last = CURRENT_TIMESTAMP WHERE id = ?');
-		$stmt->execute([$sessionToken, $sessionExpires, $loginToken['profile_id']]);
-		
-		$_SESSION['profile_id'] = $loginToken['profile_id'];
-		$_SESSION['session_token'] = $sessionToken;
-		$_SESSION['email'] = $loginToken['email'];
-		$_SESSION['first_name'] = $loginToken['first_name'];
-		$_SESSION['last_name'] = $loginToken['last_name'];
-		
-		setcookie('session_token', $sessionToken, [
-			'expires' => strtotime('+30 days'),
-			'path' => '/',
-			'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
-			'httponly' => true,
-			'samesite' => 'Lax'
-		]);
-		
-		checkAndStoreExternalIds($pdo, $loginToken['profile_id'], $loginToken['email']);
-		
-		//$isFirstLogin = empty($loginToken['login_last']);
-		//if ($isFirstLogin) {
-			//header('Location: profile-edit.php');
-		//} else {
-			header('Location: index.php');
-		//}
-		exit;
-	}
+	$stmt = $pdo->prepare('UPDATE profile SET session_token = ?, session_expires = ?, login_last = CURRENT_TIMESTAMP WHERE id = ?');
+	$stmt->execute([$sessionToken, $sessionExpires, $loginToken['profile_id']]);
+	
+	$_SESSION['profile_id'] = $loginToken['profile_id'];
+	$_SESSION['session_token'] = $sessionToken;
+	$_SESSION['email'] = $loginToken['email'];
+	$_SESSION['first_name'] = $loginToken['first_name'];
+	$_SESSION['last_name'] = $loginToken['last_name'];
+	
+	setcookie('session_token', $sessionToken, [
+		'expires' => strtotime('+30 days'),
+		'path' => '/',
+		'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+		'httponly' => true,
+		'samesite' => 'Lax'
+	]);
+	
+	checkAndStoreExternalIds($pdo, $loginToken['profile_id'], $loginToken['email']);
+	
+	//$isFirstLogin = empty($loginToken['login_last']);
+	//if ($isFirstLogin) {
+		//header('Location: profile-edit.php');
+	//} else {
+		header('Location: index.php');
+	//}
+	exit;
+}
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <?php include 'partials/meta.php'; ?>

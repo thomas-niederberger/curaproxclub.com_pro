@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/partials/config.php';
-require_once __DIR__ . '/api/functions.php';
 
 $pdo = getDbConnection();
 $message = '';
@@ -76,6 +75,7 @@ $calUrl = htmlspecialchars($currentProfile['cal_url'] ?? '');
 $calToken = htmlspecialchars($currentProfile['cal_token'] ?? '');
 $calWebhook = htmlspecialchars($currentProfile['cal_webhook'] ?? '');
 ?>
+
 <!DOCTYPE html>
 <html class="h-full dark">
 <?php include 'partials/meta.php'; ?>

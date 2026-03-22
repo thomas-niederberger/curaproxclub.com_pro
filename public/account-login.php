@@ -41,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Force dark theme for login page
 $userTheme = 'dark';
 ?>
+
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <?php include 'partials/meta.php'; ?>

@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/partials/config.php';
-require_once __DIR__ . '/api/functions.php';
 
 // Handle AJAX request to update profile timestamp
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
@@ -36,7 +35,7 @@ function getHubSpotUrlParams($contactId, $formId) {
 	$token = $_ENV['hubspotTokenB2B'] ?? '';
 	if (empty($token) || empty($contactId) || empty($formId)) return "error=missing_data";
 
-	// 1. Fetch Form Definition
+	// Fetch Form Definition
 	$ch = curl_init("https://api.hubapi.com/marketing/v3/forms/{$formId}");
 	curl_setopt_array($ch, [
 		CURLOPT_RETURNTRANSFER => true,
@@ -51,7 +50,7 @@ function getHubSpotUrlParams($contactId, $formId) {
 	$contactFields = [];
 	$companyFields = [];
 
-	// 2. Sort fields into Contact vs Company buckets
+	// Sort fields into Contact vs Company buckets
 	foreach ($formDef['fieldGroups'] as $group) {
 		foreach ($group['fields'] as $field) {
 			$name = $field['name'];
@@ -65,7 +64,7 @@ function getHubSpotUrlParams($contactId, $formId) {
 		}
 	}
 
-	// 3. Build Valid GraphQL Syntax
+	// Build Valid GraphQL Syntax
 	$contactFieldsStr = implode("\n", array_unique($contactFields));
 	$companyFieldsStr = !empty($companyFields) ? "associations { company_collection__primary { items { " . implode("\n", array_unique($companyFields)) . " } } }" : "";
 
@@ -78,7 +77,7 @@ function getHubSpotUrlParams($contactId, $formId) {
 		}
 	}";
 
-	// 4. Execute Query
+	// Execute Query
 	$ch = curl_init('https://api.hubapi.com/collector/graphql');
 	curl_setopt_array($ch, [
 		CURLOPT_RETURNTRANSFER => true,
@@ -97,7 +96,7 @@ function getHubSpotUrlParams($contactId, $formId) {
 	$contact = $result['data']['CRM']['contact'] ?? null;
 	if (!$contact) return "error=no_contact_data";
 
-	// 5. Flatten results for the URL
+	// Flatten results for the URL
 	$params = [];
 	$getVal = fn($v) => is_array($v) ? ($v['label'] ?? '') : $v;
 
@@ -130,10 +129,17 @@ if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
 <div class="max-w-[1600px] h-full bg-gray-200 dark:bg-gray-900 border-r border-gray-600 dark:border-gray-600">
 <?php include 'partials/header.php'; ?>
 <?php include 'partials/sidebar.php'; ?>
-
 <main class="md:ml-64 h-auto pt-20">
 <div class="p-8 border-t border-gray-600 dark:border-gray-600">
-    <script>
+	<section class="max-w-4xl w-full lg:w-5/8">
+		<div class="<?= $theme->getHeaderClasses() ?>">
+			<h1><?= htmlspecialchars($pageHeader) ?></h1>
+		</div>
+		<div class="<?= $theme->getContentClasses() ?>">
+			<?= $pageDescription ?>
+		</div>
+	</section>
+	<script>
     (function() {
         const query = "<?= $prefillQuery ?>";
         if (query && !window.location.search) {

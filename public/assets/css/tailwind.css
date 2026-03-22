@@ -2060,9 +2060,28 @@
       }
     }
   }
+  .prose-a\:text-gray-600 {
+    & :is(:where(a):not(:where([class~="not-prose"],[class~="not-prose"] *))) {
+      color: var(--color-gray-600);
+    }
+  }
+  .prose-a\:text-orange {
+    & :is(:where(a):not(:where([class~="not-prose"],[class~="not-prose"] *))) {
+      color: var(--color-orange);
+    }
+  }
   .prose-a\:no-underline {
     & :is(:where(a):not(:where([class~="not-prose"],[class~="not-prose"] *))) {
       text-decoration-line: none;
+    }
+  }
+  .prose-a\:hover\:text-gray-400 {
+    & :is(:where(a):not(:where([class~="not-prose"],[class~="not-prose"] *))) {
+      &:hover {
+        @media (hover: hover) {
+          color: var(--color-gray-400);
+        }
+      }
     }
   }
   .prose-a\:hover\:no-underline {

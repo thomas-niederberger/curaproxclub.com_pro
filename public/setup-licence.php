@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/partials/config.php';
-require_once __DIR__ . '/api/functions.php';
 
 $pdo = getDbConnection();
 $stmt = $pdo->prepare('SELECT id, first_name, last_name, email, licence_number, licence_state, licence_verified, id_hubspot_b2b_contact, id_hubspot_b2c_contact, id_shopify_b2c FROM profile ORDER BY created_at DESC');
@@ -15,12 +14,15 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <div class="max-w-[1600px] h-full bg-gray-200 dark:bg-gray-900 border-r border-gray-600 dark:border-gray-600">
 <?php include 'partials/header.php'; ?>
 <?php include 'partials/sidebar.php'; ?>
-
 <main class="md:ml-64 h-auto pt-20">
 <div class="p-8 border-t border-gray-600 dark:border-gray-600">
 
+<section class="max-w-4xl w-full lg:w-5/8">
+	<div class="<?= $theme->getHeaderClasses() ?>">
+		<h1><?= htmlspecialchars($pageHeader) ?>, <?= htmlspecialchars($currentProfile['first_name'] ?? '') ?>.</h1>
+	</div>
+</section>
 
-<!-- Table -->
 <div class="dark:bg-gray-700 bg-gray-700 rounded-lg">
   <div class="overflow-x-auto">
 	<table class="min-w-full divide-y divide-gray-600">
@@ -76,12 +78,9 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 	</table>
   </div>
 </div>
-<!-- End Table -->
 
 </div>
-
 </main>
-
 <?php include 'partials/footer.php'; ?>
 </div>
 

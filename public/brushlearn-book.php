@@ -1,32 +1,30 @@
 <?php
 require_once __DIR__ . '/partials/config.php';
-require_once __DIR__ . '/api/functions.php';
-
 $pdo = getDbConnection();
 
 // Use current user profile from config.php
 $user = [
-    'id' => $currentProfile['id'] ?? 0,
-    'first_name' => $currentProfile['first_name'] ?? '',
-    'last_name' => $currentProfile['last_name'] ?? '',
-    'email' => $currentProfile['email'] ?? ''
+	'id' => $currentProfile['id'] ?? 0,
+	'first_name' => $currentProfile['first_name'] ?? '',
+	'last_name' => $currentProfile['last_name'] ?? '',
+	'email' => $currentProfile['email'] ?? ''
 ];
 
 // Check if user already has a booked booking and fetch details
 $hasBookedBooking = false;
 $bookedBooking = null;
 if ($currentProfile) {
-    $stmt = $pdo->prepare('
-        SELECT b.*, l.city, l.state, l.is_virtual
-        FROM ohc_booking b
-        LEFT JOIN ohc_location l ON b.location_id = l.id
-        WHERE b.profile_id = ? AND b.status = "booked" 
-        ORDER BY b.created_at DESC 
-        LIMIT 1
-    ');
-    $stmt->execute([$currentProfile['id']]);
-    $bookedBooking = $stmt->fetch(PDO::FETCH_ASSOC);
-    $hasBookedBooking = $bookedBooking !== false;
+	$stmt = $pdo->prepare('
+		SELECT b.*, l.city, l.state, l.is_virtual
+		FROM ohc_booking b
+		LEFT JOIN ohc_location l ON b.location_id = l.id
+		WHERE b.profile_id = ? AND b.status = "booked" 
+		ORDER BY b.created_at DESC 
+		LIMIT 1
+	');
+	$stmt->execute([$currentProfile['id']]);
+	$bookedBooking = $stmt->fetch(PDO::FETCH_ASSOC);
+	$hasBookedBooking = $bookedBooking !== false;
 }
 
 // Fetch active locations from ohc_location table
@@ -43,12 +41,12 @@ $virtualForm = null;
 $inPersonForm = null;
 
 foreach ($forms as $form) {
-    $form['questions'] = json_decode($form['questions'], true) ?: [];
-    if ($form['id'] == 1) {
-        $virtualForm = $form;
-    } elseif ($form['id'] == 2) {
-        $inPersonForm = $form;
-    }
+	$form['questions'] = json_decode($form['questions'], true) ?: [];
+	if ($form['id'] == 1) {
+		$virtualForm = $form;
+	} elseif ($form['id'] == 2) {
+		$inPersonForm = $form;
+	}
 }
 ?>
 
@@ -57,24 +55,16 @@ foreach ($forms as $form) {
 <?php include 'partials/meta.php'; ?>
 <body class="antialiased bg-gray-50 dark:bg-gray-900 h-full">
 <div class="max-w-[1600px] h-full bg-gray-200 dark:bg-gray-900 border-r border-gray-600 dark:border-gray-600">
-	
 <?php include 'partials/header.php'; ?>
 <?php include 'partials/sidebar.php'; ?>
-
 <main class="md:ml-64 h-auto pt-20">
 <div class="p-8 border-t border-gray-600 dark:border-gray-600">
 
-<div class="prose prose-gray max-w-none 
-            prose-h1:text-gray-400 prose-h1:text-4xl prose-h1:md:text-5xl prose-h1:xl:text-6xl prose-h1:mb-6 prose-h1:font-normal
-            prose-p:text-gray-400 prose-p:md:text-lg prose-p:leading-relaxed prose-p:mb-2 prose-p:mt-0
-            prose-li:text-gray-400 prose-li:md:text-lg prose-li:leading-relaxed prose-li:mb-1 prose-li:mt-0 prose-ul:mb-2 prose-ul:mt-0
-            prose-headings:text-gray-400 prose-headings:font-bold prose-headings:mb-4
-			prose-strong:text-gray-400
-            marker:text-gray-400 dark:prose-invert
-			prose-a:no-underline prose-a:hover:no-underline
-			mb-8 max-w-4xl w-full lg:w-5/8">
-    <h1>Book your Brush & Learn</h1>
-</div>
+<section>
+	<div class="<?= $theme->getHeaderClasses() ?>">
+		<h1><?= htmlspecialchars($pageHeader) ?></h1>
+	</div>
+</section>
 
 <?php if (!$hasBookedBooking): ?>
 <div class="grid grid-cols-1 md:grid-cols-5 gap-2 mb-2">

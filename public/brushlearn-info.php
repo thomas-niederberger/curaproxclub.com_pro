@@ -1,31 +1,27 @@
 <?php
 require_once __DIR__ . '/partials/config.php';
 $pdo = getDbConnection();
-
-// Fetch the most recent booking for the current user
 $booking = null;
 $location = null;
 $formResponse = null;
-
 if ($currentProfile) {
-    $stmt = $pdo->prepare('
-        SELECT b.*, l.city, l.state, l.is_virtual, fr.answers, fr.form_id
-        FROM ohc_booking b
-        LEFT JOIN ohc_location l ON b.location_id = l.id
-        LEFT JOIN form_response fr ON b.form_response_id = fr.id
-        WHERE b.profile_id = ?
-        AND b.status IN ("draft", "booked")
-        ORDER BY b.created_at DESC
-        LIMIT 1
-    ');
-    $stmt->execute([$currentProfile['id']]);
-    $booking = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if ($booking && $booking['answers']) {
-        $booking['answers'] = json_decode($booking['answers'], true);
-    }
+	$stmt = $pdo->prepare('
+		SELECT b.*, l.city, l.state, l.is_virtual, fr.answers, fr.form_id
+		FROM ohc_booking b
+		LEFT JOIN ohc_location l ON b.location_id = l.id
+		LEFT JOIN form_response fr ON b.form_response_id = fr.id
+		WHERE b.profile_id = ?
+		AND b.status IN ("draft", "booked")
+		ORDER BY b.created_at DESC
+		LIMIT 1
+	');
+	$stmt->execute([$currentProfile['id']]);
+	$booking = $stmt->fetch(PDO::FETCH_ASSOC);
+	
+	if ($booking && $booking['answers']) {
+		$booking['answers'] = json_decode($booking['answers'], true);
+	}
 }
-
 $hasBooking = !empty($booking);
 ?>
 
@@ -34,38 +30,27 @@ $hasBooking = !empty($booking);
 <?php include 'partials/meta.php'; ?>
 <body class="antialiased bg-gray-50 dark:bg-gray-900 h-full">
 <div class="max-w-[1600px] h-full bg-gray-200 dark:bg-gray-900 border-r border-gray-600 dark:border-gray-600">
-	
 <?php include 'partials/header.php'; ?>
 <?php include 'partials/sidebar.php'; ?>
-
 <main class="md:ml-64 h-auto pt-20">
 <div class="p-8 border-t border-gray-600 dark:border-gray-600">
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-	<div class="lg:col-span-2">
-		<div class="prose prose-gray max-w-none 
-					prose-h1:text-gray-400 prose-h1:text-4xl prose-h1:md:text-5xl prose-h1:xl:text-6xl prose-h1:mb-0 prose-h1:font-normal">
-			<h1><?= htmlspecialchars($pageHeader) ?></h1>
-		</div>
+<section>
+	<div class="<?= $theme->getHeaderClasses() ?>">
+		<h1><?= htmlspecialchars($pageHeader) ?></h1>
 	</div>
-
+</section>
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 	<div class="lg:col-span-2">
-		<div class="prose prose-gray max-w-none 
-					prose-h1:text-gray-400 prose-h1:text-4xl prose-h1:md:text-5xl prose-h1:xl:text-6xl prose-h1:mb-6 prose-h1:font-normal
-					prose-p:text-gray-400 prose-p:md:text-lg prose-p:leading-relaxed prose-p:mb-2 prose-p:mt-0
-					prose-li:text-gray-400 prose-li:md:text-lg prose-li:leading-relaxed prose-li:mb-1 prose-li:mt-0 prose-ul:mb-2 prose-ul:mt-0
-					prose-headings:text-gray-400 prose-headings:font-bold prose-headings:mb-4
-					prose-strong:text-gray-400
-					marker:text-gray-400 dark:prose-invert
-					prose-a:no-underline prose-a:hover:no-underline
-					mb-8">
+		<div class="<?= $theme->getContentClasses() ?>">
 			<?= $pageDescription ?>
+		</div>
+		<div>
 			<?php if (!$hasBooking): ?>
 				<a href="/brushlearn-book.php" class="mt-6 inline-flex items-center px-4 gap-2 py-2 bg-orange hover:bg-orange/80 text-white font-medium rounded-full transition-colors"><i data-lucide="calendar" class="w-4 h-4 stroke-[2px]"></i> Book your Brush & Learn</a>
 			<?php endif; ?>
 		</div>
 	</div>
-
 	<div class="lg:col-span-1">
 		<div class="bg-gray-700 dark:bg-gray-700 rounded-lg p-6 sticky top-24">
 			<h3 class="mb-4 text-xl text-gray-400 dark:text-gray-400">Your Booking</h3>
@@ -146,11 +131,10 @@ $hasBooking = !empty($booking);
 			<?php endif; ?>
 		</div>
 	</div>
-</div>
+</section>
 
 </div>
 </main>
-
 <?php include 'partials/footer.php'; ?>
 </div>
 </body>

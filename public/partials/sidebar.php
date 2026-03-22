@@ -55,11 +55,9 @@ foreach ($filteredPages as $page) {
 	<div class="overflow-y-auto pt-12 md:pt-4 px-3 h-full">
 		<ul class="space-y-2">
 			<?php 
-			$separatorShown = false;
 			foreach ($parentPages as $parent): 
 				$hasChildren = isset($childPages[$parent['id']]) && !empty($childPages[$parent['id']]);
-				$showSeparator = !$separatorShown && $parent['sort_order'] > 100;
-				if ($showSeparator) $separatorShown = true;
+				$showSeparator = ($parent['id'] == 10);
 			?>
 				<li <?= $showSeparator ? 'class="pt-2 mt-2 border-t border-gray-600"' : '' ?>>
 					<?php if ($hasChildren): ?>
