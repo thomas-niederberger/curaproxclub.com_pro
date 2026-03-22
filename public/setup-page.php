@@ -170,7 +170,7 @@ foreach ($allPages as $page) {
 			<div>
 				<label for="pageDescription" class="block text-sm font-medium text-gray-400 mb-2">
 					Description (Markdown)
-					<a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="text-orange hover:underline ml-2">
+					<a href="https://markdownlivepreview.com/" target="_blank" class="text-orange hover:underline ml-2">
 						<i data-lucide="external-link" class="w-3 h-3 inline"></i> Markdown Guide
 					</a>
 				</label>
