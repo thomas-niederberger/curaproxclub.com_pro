@@ -161,7 +161,7 @@ $calToken = htmlspecialchars($currentProfile['cal_token'] ?? '');
 			<!-- Cal.com Settings -->
 			<div class="dark:bg-gray-700 bg-gray-700 rounded-lg p-6">
 				<h3 class="text-xl font-bold text-gray-400 mb-6">Cal.com Integration</h3>
-				<p class="mb-4">The article <a href="help-ohc-calendar.php" class="text-orange">"OHC Calendar"</a> will guide you trough the Cal.com connection.</p>
+				<p class="mb-4 text-gray-400">The article <a href="help-ohc-calendar.php" class="text-orange">"OHC Calendar"</a> will guide you trough the Cal.com connection.</p>
 				<?php if ($message && $_GET['msg'] === 'calcom'): ?>
 				<div class="mb-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg">
 					<p class="text-green-400 text-sm"><?= htmlspecialchars($message) ?></p>
