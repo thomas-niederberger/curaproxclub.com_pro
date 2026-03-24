@@ -68,11 +68,12 @@ try {
                 throw new Exception('HubSpot token not configured');
             }
             
-            // Fetch booking details including form answers, customer profile, and professional's HubSpot ID
+            // Fetch booking details including form answers, customer profile, and professional's info
             $stmt = $pdo->prepare('
                 SELECT b.*, l.city, l.state, l.is_virtual, fr.answers, 
                        customer.first_name, customer.last_name,
-                       professional.id_hubspot_b2b_contact as professional_hubspot_id
+                       professional.id_hubspot_b2b_contact as professional_hubspot_id,
+                       professional.email as professional_email
                 FROM ohc_booking b
                 LEFT JOIN ohc_location l ON b.location_id = l.id
                 LEFT JOIN form_response fr ON b.form_response_id = fr.id
@@ -90,6 +91,7 @@ try {
             
             $profileName = trim(($booking['first_name'] ?? '') . ' ' . ($booking['last_name'] ?? ''));
             $professionalHubSpotId = $booking['professional_hubspot_id'] ?? null;
+            $professionalEmail = $booking['professional_email'] ?? null;
             
             // Build Cal.com meeting URL
             $calMeetingUrl = $calBookingId ? "https://app.cal.com/booking/{$calBookingId}" : '';
@@ -165,7 +167,8 @@ try {
                     'hs_meeting_external_url' => $calMeetingUrl,
                     'hs_meeting_location' => $booking['is_virtual'] ? 'Remote' : ($booking['city'] . ', ' . $booking['state']),
                     'hubspot_owner_id' => $professionalHubSpotId,
-                    'hs_meeting_outcome' => 'SCHEDULED'
+                    'hs_meeting_outcome' => 'SCHEDULED',
+                    'hs_internal_meeting_notes' => $professionalEmail ? "Organizer: {$professionalEmail}" : null
                 ],
                 'associations' => []
             ];
