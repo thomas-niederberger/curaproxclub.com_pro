@@ -4,7 +4,7 @@ require_once __DIR__ . '/partials/config.php';
 $pdo = getDbConnection();
 
 // Fetch all profiles
-$stmt = $pdo->query('SELECT id, first_name, last_name, email FROM profile ORDER BY last_name ASC, first_name ASC');
+$stmt = $pdo->query('SELECT id, first_name, last_name, email, cal_token, cal_url, cal_confirmed FROM profile ORDER BY last_name ASC, first_name ASC');
 $profiles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch all locations
@@ -13,7 +13,7 @@ $locations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch all assignments
 $stmt = $pdo->query('
-	SELECT op.*, p.first_name, p.last_name, p.email, l.city, l.state, l.is_virtual
+	SELECT op.*, p.first_name, p.last_name, p.email, p.cal_token, p.cal_url, p.cal_confirmed, l.city, l.state, l.is_virtual
 	FROM ohc_profile op
 	JOIN profile p ON op.profile_id = p.id
 	JOIN ohc_location l ON op.location_id = l.id
@@ -51,13 +51,15 @@ $assignments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 				<th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-400">Email</th>
 				<th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-400">Location</th>
 				<th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-400">Type</th>
+				<th class="px-4 py-3 text-center text-xs font-semibold uppercase text-gray-400">Cal Verified</th>
+				<th class="px-4 py-3 text-center text-xs font-semibold uppercase text-gray-400">Calendar</th>
 				<th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-400">Actions</th>
 			</tr>
 		</thead>
 		<tbody class="divide-y divide-gray-600">
 			<?php if (empty($assignments)): ?>
 			<tr>
-				<td colspan="5" class="px-4 py-8 text-center text-gray-400">No assignments found. Add your first assignment to get started.</td>
+				<td colspan="7" class="px-4 py-8 text-center text-gray-400">No assignments found. Add your first assignment to get started.</td>
 			</tr>
 			<?php else: ?>
 				<?php foreach ($assignments as $assignment): ?>
@@ -74,6 +76,32 @@ $assignments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 							<span class="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-full">Virtual</span>
 						<?php else: ?>
 							<span class="px-2 py-1 text-xs bg-purple-500/20 text-purple-400 rounded-full">In-Person</span>
+						<?php endif; ?>
+					</td>
+					<td class="px-4 py-3 text-center">
+						<?php if (!empty($assignment['cal_token'])): ?>
+							<button type="button" 
+								data-profile-id="<?= $assignment['profile_id'] ?>" 
+								data-cal-token="<?= htmlspecialchars($assignment['cal_token']) ?>" 
+								class="cal-toggle group relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 <?= $assignment['cal_confirmed'] ? 'bg-green-500' : 'bg-red-500' ?>">
+								<span class="sr-only">Verify Cal.com token</span>
+								<span class="pointer-events-none relative inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-in-out <?= $assignment['cal_confirmed'] ? 'translate-x-5' : 'translate-x-0' ?>">
+									<span class="absolute inset-0 flex items-center justify-center transition-opacity duration-200">
+										<i data-lucide="<?= $assignment['cal_confirmed'] ? 'check' : 'x' ?>" class="w-3 h-3 <?= $assignment['cal_confirmed'] ? 'text-green-500' : 'text-red-500' ?>"></i>
+									</span>
+								</span>
+							</button>
+						<?php else: ?>
+							<span class="px-2 py-1 text-xs bg-red-500/20 text-red-400 rounded-full">No token</span>
+						<?php endif; ?>
+					</td>
+					<td class="px-4 py-3 text-center">
+						<?php if (!empty($assignment['cal_url'])): ?>
+							<a href="<?= htmlspecialchars($assignment['cal_url']) ?>" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center p-2 hover:bg-gray-500 rounded-lg transition-colors">
+								<i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i>
+							</a>
+						<?php else: ?>
+							<span class="text-xs text-gray-500">-</span>
 						<?php endif; ?>
 					</td>
 					<td class="px-4 py-3 text-right">
@@ -269,6 +297,61 @@ document.addEventListener('DOMContentLoaded', function() {
 			.catch(error => {
 				alert('Error: ' + error.message);
 			});
+		});
+	});
+	
+	// Cal.com token verification
+	document.querySelectorAll('.cal-toggle').forEach(toggle => {
+		toggle.addEventListener('click', async function() {
+			const profileId = this.getAttribute('data-profile-id');
+			const calToken = this.getAttribute('data-cal-token');
+			const knob = this.querySelector('span.pointer-events-none');
+			const iconSpan = knob ? knob.querySelector('span') : null;
+			const icon = iconSpan ? iconSpan.querySelector('i') : null;
+			
+			// Disable button during verification
+			this.disabled = true;
+			this.style.opacity = '0.6';
+			
+			try {
+				const response = await fetch('/api/cal_verify.php', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({ 
+						profile_id: profileId,
+						cal_token: calToken
+					})
+				});
+				
+				const result = await response.json();
+				
+				if (result.success) {
+					// Animate to verified state
+					this.classList.remove('bg-red-500');
+					this.classList.add('bg-green-500');
+					if (knob) knob.classList.add('translate-x-5');
+					if (icon) {
+						icon.setAttribute('data-lucide', 'check');
+						icon.classList.remove('text-red-500');
+						icon.classList.add('text-green-500');
+					}
+					
+					// Re-render icons and re-enable button
+					lucide.createIcons();
+					this.disabled = false;
+					this.style.opacity = '1';
+				} else {
+					// Re-enable button on failure
+					this.disabled = false;
+					this.style.opacity = '1';
+					alert('Failed to verify Cal.com token: ' + (result.error || 'Invalid token'));
+				}
+			} catch (error) {
+				console.error('Error verifying Cal.com token:', error);
+				this.disabled = false;
+				this.style.opacity = '1';
+				alert('Failed to verify Cal.com token. Please try again.');
+			}
 		});
 	});
 	

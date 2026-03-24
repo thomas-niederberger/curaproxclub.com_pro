@@ -208,6 +208,28 @@ if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
             } catch (error) {
                 console.error('Error updating profile timestamp:', error);
             }
+            
+            // Sync HubSpot contact and company IDs (also checks B2C and Shopify)
+            try {
+                const syncResponse = await fetch('/api/sync_external_ids.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        profile_id: <?= $currentProfile['id'] ?? 0 ?>,
+                        email: '<?= htmlspecialchars($currentProfile['email'] ?? '') ?>'
+                    })
+                });
+                const syncResult = await syncResponse.json();
+                if (syncResult.success) {
+                    console.log('External IDs synced:', syncResult);
+                } else {
+                    console.error('Failed to sync external IDs:', syncResult.error);
+                }
+            } catch (error) {
+                console.error('Error syncing external IDs:', error);
+            }
         });
     </script>
 </div>

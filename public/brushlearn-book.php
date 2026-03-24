@@ -32,6 +32,24 @@ $stmt = $pdo->prepare('SELECT id, city, state, is_virtual FROM ohc_location WHER
 $stmt->execute();
 $locations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Fetch professionals assigned to each location
+$stmt = $pdo->prepare('
+	SELECT op.location_id, p.id, p.first_name, p.last_name, p.email, p.cal_url
+	FROM ohc_profile op
+	JOIN profile p ON op.profile_id = p.id
+	WHERE p.cal_url IS NOT NULL AND p.cal_url != ""
+	ORDER BY p.first_name ASC, p.last_name ASC
+');
+$stmt->execute();
+$professionalsByLocation = [];
+foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $prof) {
+	$locationId = $prof['location_id'];
+	if (!isset($professionalsByLocation[$locationId])) {
+		$professionalsByLocation[$locationId] = [];
+	}
+	$professionalsByLocation[$locationId][] = $prof;
+}
+
 // Fetch forms for virtual (id=1) and in-person (id=2) sessions
 $stmt = $pdo->prepare('SELECT id, slug, title, questions FROM form WHERE id IN (1, 2) AND active = 1');
 $stmt->execute();
@@ -47,6 +65,101 @@ foreach ($forms as $form) {
 	} elseif ($form['id'] == 2) {
 		$inPersonForm = $form;
 	}
+}
+
+function getHubSpotUrlParams($contactId, $formId) {
+	$token = $_ENV['hubspotTokenB2B'] ?? '';
+	if (empty($token) || empty($contactId) || empty($formId)) return "error=missing_data";
+
+	// 1. Fetch Form Definition
+	$ch = curl_init("https://api.hubapi.com/marketing/v3/forms/{$formId}");
+	curl_setopt_array($ch, [
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $token]
+	]);
+	$formRes = curl_exec($ch);
+	$formDef = json_decode($formRes, true);
+	curl_close($ch);
+
+	if (!isset($formDef['fieldGroups'])) return "error=form_not_found";
+
+	$contactFields = [];
+	$companyFields = [];
+
+	// 2. Sort fields into Contact vs Company buckets
+	foreach ($formDef['fieldGroups'] as $group) {
+		foreach ($group['fields'] as $field) {
+			$name = $field['name'];
+			if (str_starts_with($name, 'hs_') || str_starts_with($name, 'LEGAL_CONSENT')) continue;
+
+			if (($field['objectTypeId'] ?? '') === '0-2') {
+				$companyFields[] = $name;
+			} else {
+				$contactFields[] = $name;
+			}
+		}
+	}
+
+	// 3. Build Valid GraphQL Syntax
+	$contactFieldsStr = implode("\n", array_unique($contactFields));
+	$companyFieldsStr = !empty($companyFields) ? "associations { company_collection__primary { items { " . implode("\n", array_unique($companyFields)) . " } } }" : "";
+
+	$query = "query GetContactData(\$id: String!) {
+		CRM {
+			contact(uniqueIdentifier: \"hs_object_id\", uniqueIdentifierValue: \$id) {
+				{$contactFieldsStr}
+				{$companyFieldsStr}
+			}
+		}
+	}";
+
+	// 4. Execute Query
+	$ch = curl_init('https://api.hubapi.com/collector/graphql');
+	curl_setopt_array($ch, [
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_POST => true,
+		CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $token, 'Content-Type: application/json'],
+		CURLOPT_POSTFIELDS => json_encode(['query' => $query, 'variables' => ['id' => (string)$contactId]])
+	]);
+	$graphqlRes = curl_exec($ch);
+	$result = json_decode($graphqlRes, true);
+	curl_close($ch);
+	if (isset($result['errors'])) {
+		error_log("GraphQL Syntax Error: " . json_encode($result['errors']));
+		return "error=syntax_check_logs";
+	}
+
+	$contact = $result['data']['CRM']['contact'] ?? null;
+	if (!$contact) return "error=no_contact_data";
+
+	// 5. Flatten results for the URL
+	$params = [];
+	$getVal = fn($v) => is_array($v) ? ($v['label'] ?? '') : $v;
+
+	foreach ($contactFields as $f) {
+		$params[$f] = $getVal($contact[$f] ?? '');
+	}
+
+	$company = ($contact['associations']['company_collection__primary']['items'] ?? [])[0] ?? null;
+	if ($company) {
+		foreach ($companyFields as $f) {
+			$params[$f] = $getVal($company[$f] ?? '');
+		}
+	}
+	
+	return http_build_query(array_filter($params));
+}
+
+$formId = 'eae6b326-2d0c-4534-b652-69dd49011c1f';
+$prefillQuery = "";
+
+if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
+	// Cache prefill query in session to avoid repeated API calls
+	$cacheKey = 'hubspot_prefill_' . $currentProfile['id_hubspot_b2b_contact'];
+	if (!isset($_SESSION[$cacheKey]) || empty($_SESSION[$cacheKey])) {
+		$_SESSION[$cacheKey] = getHubSpotUrlParams($currentProfile['id_hubspot_b2b_contact'], $formId);
+	}
+	$prefillQuery = $_SESSION[$cacheKey];
 }
 ?>
 
@@ -94,6 +207,35 @@ foreach ($forms as $form) {
 <div id="step-profile" class="bg-gray-700 dark:bg-gray-700 rounded-lg p-6 mb-2">
 	<h3 class="mb-2 text-xl text-gray-400 dark:text-gray-400">Your Profile Information</h3>
 	<p class="mb-4 text-gray-400 dark:text-gray-400">Please complete or update your profile information to continue with your booking.</p>
+	
+	<script>
+	(function() {
+		const query = "<?= $prefillQuery ?>";
+		if (query && !window.location.search) {
+			const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' + query;
+			window.history.replaceState({ path: newUrl }, '', newUrl);
+		}
+
+		window.addEventListener('message', event => {
+			if (event.data.type === 'hsFormCallback' && event.data.eventName === 'onFormReady') {
+				const urlParams = new URLSearchParams(window.location.search);
+				const form = document.querySelector('.hs-form-html form');
+				if (form) {
+					urlParams.forEach((value, key) => {
+						const inputs = form.querySelectorAll(`input[name="${key}"][type="radio"], input[name$="/${key}"][type="radio"], input[name="${key}"][type="checkbox"], input[name$="/${key}"][type="checkbox"]`);
+						inputs.forEach(input => {
+							if (input.value === value) {
+								input.checked = true;
+								input.dispatchEvent(new Event('change', { bubbles: true }));
+								console.log(`✅ Prefilled Radio/Checkbox: ${key} = ${value}`);
+							}
+						});
+					});
+				}
+			}
+		});
+	})();
+	</script>
 	
 	<script src="https://js-eu1.hsforms.net/forms/embed/developer/27229630.js" defer></script>
 	<div class="hs-form-html" 
@@ -219,6 +361,24 @@ foreach ($forms as $form) {
 <div id="step-datetime" class="bg-gray-700 dark:bg-gray-700 rounded-lg p-6 mb-2 hidden">
 	<h3 class="mb-2 text-xl text-gray-400 dark:text-gray-400">Choose your date and time</h3>
 	<p class="mb-4 text-gray-400 dark:text-gray-400">Select a date and time that works best for you and confirm your session.</p>
+	
+	<!-- Professional Selection (shown when multiple professionals available) -->
+	<div id="professional-selection" class="mb-6 hidden">
+		<label class="block text-sm font-medium text-gray-400 mb-2">
+			Select your preferred professional
+			<span class="text-orange">*</span>
+		</label>
+		<select id="professional-select" name="professional_id" 
+			class="w-full pl-4 pr-10 py-2 bg-gray-600 dark:bg-gray-600 border border-gray-600 rounded-lg 
+				focus:ring-2 focus:ring-orange text-gray-400 dark:text-gray-400 appearance-none cursor-pointer outline-none"
+			style="background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22white%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22m6 9 6 6 6-6%22/></svg>'); 
+				background-repeat: no-repeat; 
+				background-position: right 1.25rem center; 
+				background-size: 1.2em;">
+			<option value="">Select a professional</option>
+		</select>
+	</div>
+	
 	<!-- Cal inline embed code begins -->
 	<div style="width:100%;height:auto;min-height:600px;overflow:scroll" id="my-cal-inline-brush-learn"></div>
 
@@ -253,17 +413,8 @@ foreach ($forms as $form) {
 	// 1. Initialize the Namespace
 	Cal("init", "brush-learn", {origin:"https://app.cal.com"});
 
-	// 2. Configure the Inline Calendar
-	Cal.ns["brush-learn"]("inline", {
-		elementOrSelector:"#my-cal-inline-brush-learn",
-		config: {
-			"layout":"month_view",
-			"useSlotsViewOnSmallScreen":"true",
-			"name": "<?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?>",
-			"email": "<?= htmlspecialchars($user['email']) ?>"
-		},
-		calLink: "thomas.niederberger/brush-learn",
-	});
+	// 2. Configure the Inline Calendar (calLink will be set dynamically by JavaScript)
+	// The calendar will be initialized when a professional is selected
 
 	// 3. UI Styling (Curaprox Orange)
 	Cal.ns["brush-learn"]("ui", {
@@ -301,10 +452,16 @@ foreach ($forms as $form) {
 			const calBookingDate = eventData.startTime || eventData.date || eventData.bookingStartTime || 
 			                       (eventData.booking && eventData.booking.startTime);
 			
+			// Extract any notes from Cal.com booking
+			const calNotes = (eventData.booking && eventData.booking.responses && eventData.booking.responses.notes) ||
+			                 eventData.notes || eventData.description || 
+			                 (eventData.booking && eventData.booking.notes) || '';
+			
 			console.log('Extracted Cal.com booking UID:', calBookingUid);
 			console.log('Extracted Cal.com booking date:', calBookingDate);
+			console.log('Extracted Cal.com notes:', calNotes);
 			
-			// Save booking confirmation to database
+			// Save booking confirmation to database and create HubSpot meeting
 			try {
 				const response = await fetch('/api/booking_confirm.php', {
 					method: 'POST',
@@ -313,11 +470,22 @@ foreach ($forms as $form) {
 						booking_id: window.bookingId,
 						profile_id: <?= $user['id'] ?>,
 						cal_booking_id: calBookingUid,
-						booking_date: calBookingDate
+						booking_date: calBookingDate,
+						contact_id: window.hubspotContactId || null,
+						company_id: window.hubspotCompanyId || null,
+						cal_notes: calNotes
 					})
 				});
 				
 				const result = await response.json();
+				console.log('Booking confirmation response:', result);
+				
+				if (result.hubspot_meeting_id) {
+					console.log('✅ HubSpot meeting created:', result.hubspot_meeting_id);
+				} else {
+					console.warn('⚠️ HubSpot meeting NOT created:', result.hubspot_meeting_debug);
+				}
+				
 				if (result.success) {
 					console.log('Booking confirmed in database');
 					
@@ -484,8 +652,14 @@ document.addEventListener('DOMContentLoaded', function() {
 	// User and location data
 	const currentUser = <?= json_encode($user) ?>;
 	const locations = <?= json_encode($locations) ?>;
+	const professionalsByLocation = <?= json_encode($professionalsByLocation) ?>;
 	let selectedLocation = null;
 	let isVirtual = false;
+	
+	// Professional selection
+	const professionalSelection = document.getElementById('professional-selection');
+	const professionalSelect = document.getElementById('professional-select');
+	let selectedProfessional = null;
 	
 	// Booking state
 	let bookingId = null;
@@ -638,13 +812,38 @@ document.addEventListener('DOMContentLoaded', function() {
 			console.error('Error updating profile timestamp:', error);
 		}
 		
+		// Sync HubSpot contact and company IDs (also checks B2C and Shopify)
+		try {
+			const syncResponse = await fetch('/api/sync_external_ids.php', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					profile_id: currentUser.id,
+					email: currentUser.email
+				})
+			});
+			const syncResult = await syncResponse.json();
+			if (syncResult.success) {
+				console.log('External IDs synced:', syncResult);
+				// Store IDs globally for later use
+				window.hubspotContactId = syncResult.contact_id;
+				window.hubspotCompanyId = syncResult.company_id;
+			} else {
+				console.error('Failed to sync external IDs:', syncResult.error);
+			}
+		} catch (error) {
+			console.error('Error syncing external IDs:', error);
+		}
+		
 		// Automatically navigate to Step 2 (Location)
 		setTimeout(() => {
 			stepProfile.classList.add('hidden');
 			stepLocation.classList.remove('hidden');
 			updateStepIndicator('location');
 			lucide.createIcons();
-		}, 500);
+		}, 100);
 	});
 	
 	// Step 2 -> Step 3 (Location -> Questions)
@@ -797,6 +996,78 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	}
 	
+	// Populate professional dropdown based on selected location
+	function populateProfessionals(locationId) {
+		const professionals = professionalsByLocation[locationId] || [];
+		
+		// Clear existing options except the first one
+		professionalSelect.innerHTML = '<option value="">Select a professional</option>';
+		
+		if (professionals.length === 0) {
+			professionalSelection.classList.add('hidden');
+			selectedProfessional = null;
+			return;
+		}
+		
+		if (professionals.length === 1) {
+			// Only one professional - auto-select and hide dropdown
+			selectedProfessional = professionals[0];
+			professionalSelection.classList.add('hidden');
+			updateCalEmbed(selectedProfessional.cal_url);
+		} else {
+			// Multiple professionals - show dropdown
+			professionals.forEach(prof => {
+				const option = document.createElement('option');
+				option.value = prof.id;
+				option.textContent = `${prof.first_name} ${prof.last_name}`;
+				option.dataset.calUrl = prof.cal_url;
+				professionalSelect.appendChild(option);
+			});
+			professionalSelection.classList.remove('hidden');
+		}
+	}
+	
+	// Update Cal.com embed with selected professional's calendar
+	function updateCalEmbed(calUrl) {
+		if (!calUrl) return;
+		
+		// Extract the Cal.com username/link from the full URL
+		// Format: https://cal.com/username/event-type or just username/event-type
+		let calLink = calUrl;
+		if (calUrl.includes('cal.com/')) {
+			calLink = calUrl.split('cal.com/')[1];
+		}
+		
+		// Re-initialize Cal.com with new link
+		if (window.Cal && window.Cal.ns && window.Cal.ns["brush-learn"]) {
+			Cal.ns["brush-learn"]("inline", {
+				elementOrSelector:"#my-cal-inline-brush-learn",
+				config: {
+					"layout":"month_view",
+					"useSlotsViewOnSmallScreen":"true",
+					"name": currentUser.first_name + ' ' + currentUser.last_name,
+					"email": currentUser.email
+				},
+				calLink: calLink,
+			});
+		}
+	}
+	
+	// Professional selection change handler
+	professionalSelect.addEventListener('change', function() {
+		const selectedOption = this.options[this.selectedIndex];
+		if (selectedOption.value) {
+			const profId = parseInt(selectedOption.value);
+			const locationId = selectedLocation ? selectedLocation.id : null;
+			const professionals = professionalsByLocation[locationId] || [];
+			selectedProfessional = professionals.find(p => p.id === profId);
+			
+			if (selectedProfessional && selectedProfessional.cal_url) {
+				updateCalEmbed(selectedProfessional.cal_url);
+			}
+		}
+	});
+	
 	// Step 2 -> Step 3 (Questions -> Date & Time)
 	btnQuestionsVirtualNext.addEventListener('click', async function() {
 		if (!validateRequiredQuestions(stepQuestionsVirtual)) {
@@ -814,6 +1085,12 @@ document.addEventListener('DOMContentLoaded', function() {
 		
 		stepQuestionsVirtual.classList.add('hidden');
 		stepDatetime.classList.remove('hidden');
+		
+		// Populate professionals for selected location
+		if (selectedLocation) {
+			populateProfessionals(selectedLocation.id);
+		}
+		
 		updateStepIndicator('datetime');
 		lucide.createIcons();
 	});
@@ -834,6 +1111,12 @@ document.addEventListener('DOMContentLoaded', function() {
 		
 		stepQuestionsInperson.classList.add('hidden');
 		stepDatetime.classList.remove('hidden');
+		
+		// Populate professionals for selected location
+		if (selectedLocation) {
+			populateProfessionals(selectedLocation.id);
+		}
+		
 		updateStepIndicator('datetime');
 		lucide.createIcons();
 	});
