@@ -19,13 +19,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
 		echo json_encode([
 			'success' => true,
 			'message' => 'Profile timestamp updated',
-			'profile_id' => $_SESSION['profile_id']
 		]);
 	} catch (Exception $e) {
+		error_log('profile-edit timestamp error: ' . $e->getMessage());
 		http_response_code(500);
 		echo json_encode([
 			'success' => false,
-			'error' => 'Database error: ' . $e->getMessage()
+			'error'   => 'An internal error occurred'
 		]);
 	}
 	exit;
@@ -33,9 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
 
 function getHubSpotUrlParams($contactId, $formId) {
 	$token = $_ENV['hubspotTokenB2B'] ?? '';
-	if (empty($token) || empty($contactId) || empty($formId)) return "error=missing_data";
+	if (empty($token) || empty($contactId) || empty($formId)) return "";
 
-	// 1. Fetch Form Definition
 	$ch = curl_init("https://api.hubapi.com/marketing/v3/forms/{$formId}");
 	curl_setopt_array($ch, [
 		CURLOPT_RETURNTRANSFER => true,
@@ -45,12 +44,11 @@ function getHubSpotUrlParams($contactId, $formId) {
 	$formDef = json_decode($formRes, true);
 	curl_close($ch);
 
-	if (!isset($formDef['fieldGroups'])) return "error=form_not_found";
+	if (!isset($formDef['fieldGroups'])) return "";
 
 	$contactFields = [];
 	$companyFields = [];
 
-	// 2. Sort fields into Contact vs Company buckets
 	foreach ($formDef['fieldGroups'] as $group) {
 		foreach ($group['fields'] as $field) {
 			$name = $field['name'];
@@ -64,7 +62,6 @@ function getHubSpotUrlParams($contactId, $formId) {
 		}
 	}
 
-	// 3. Build Valid GraphQL Syntax
 	$contactFieldsStr = implode("\n", array_unique($contactFields));
 	$companyFieldsStr = !empty($companyFields) ? "associations { company_collection__primary { items { " . implode("\n", array_unique($companyFields)) . " } } }" : "";
 
@@ -77,7 +74,6 @@ function getHubSpotUrlParams($contactId, $formId) {
 		}
 	}";
 
-	// 4. Execute Query
 	$ch = curl_init('https://api.hubapi.com/collector/graphql');
 	curl_setopt_array($ch, [
 		CURLOPT_RETURNTRANSFER => true,
@@ -88,15 +84,15 @@ function getHubSpotUrlParams($contactId, $formId) {
 	$graphqlRes = curl_exec($ch);
 	$result = json_decode($graphqlRes, true);
 	curl_close($ch);
+
 	if (isset($result['errors'])) {
 		error_log("GraphQL Syntax Error: " . json_encode($result['errors']));
-		return "error=syntax_check_logs";
+		return "";
 	}
 
 	$contact = $result['data']['CRM']['contact'] ?? null;
-	if (!$contact) return "error=no_contact_data";
+	if (!$contact) return "";
 
-	// 5. Flatten results for the URL
 	$params = [];
 	$getVal = fn($v) => is_array($v) ? ($v['label'] ?? '') : $v;
 
@@ -114,7 +110,7 @@ function getHubSpotUrlParams($contactId, $formId) {
 	return http_build_query(array_filter($params));
 }
 
-$formId = 'eae6b326-2d0c-4534-b652-69dd49011c1f';
+$formId       = 'eae6b326-2d0c-4534-b652-69dd49011c1f';
 $prefillQuery = "";
 
 if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
@@ -133,7 +129,7 @@ if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
 <div class="p-8 border-t border-gray-600 dark:border-gray-600">
     <script>
     (function() {
-        const query = "<?= $prefillQuery ?>";
+        const query = <?= json_encode($prefillQuery) ?>;
         if (query && !window.location.search) {
             const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' + query;
             window.history.replaceState({ path: newUrl }, '', newUrl);
@@ -149,7 +145,6 @@ if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
                         if (input.value === value) {
                             input.checked = true;
                             input.dispatchEvent(new Event('change', { bubbles: true }));
-                            console.log(`✅ Prefilled Radio/Checkbox: ${key} = ${value}`);
                         }
                     });
                 });
@@ -161,7 +156,7 @@ if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
     <script src="https://js-eu1.hsforms.net/forms/embed/developer/27229630.js" defer></script>
     <div class="hs-form-html" 
          data-region="eu1" 
-         data-form-id="<?= $formId ?>" 
+         data-form-id="<?= htmlspecialchars($formId) ?>" 
          data-portal-id="27229630">
     </div>
 
@@ -175,34 +170,24 @@ if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 });
-                
                 const result = await response.json();
-                
-                if (result.success) {
-                    console.log('Profile timestamp updated successfully');
-                } else {
+                if (!result.success) {
                     console.error('Failed to update profile timestamp:', result.error);
                 }
             } catch (error) {
                 console.error('Error updating profile timestamp:', error);
             }
             
-            // Sync HubSpot contact and company IDs (also checks B2C and Shopify)
             try {
                 const syncResponse = await fetch('/api/sync_external_ids.php', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        profile_id: <?= $currentProfile['id'] ?? 0 ?>,
-                        email: '<?= htmlspecialchars($currentProfile['email'] ?? '') ?>'
+                        email: <?= json_encode($currentProfile['email'] ?? '') ?>
                     })
                 });
                 const syncResult = await syncResponse.json();
-                if (syncResult.success) {
-                    console.log('External IDs synced:', syncResult);
-                } else {
+                if (!syncResult.success) {
                     console.error('Failed to sync external IDs:', syncResult.error);
                 }
             } catch (error) {

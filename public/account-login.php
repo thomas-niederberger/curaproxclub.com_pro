@@ -2,8 +2,16 @@
 $error = null;
 $success = null;
 
+// Cleanup expired tokens on page load (runs once per page visit)
+require_once __DIR__ . '/../config/config.php';
+$pdo = getDbConnection();
+try {
+    $pdo->exec("DELETE FROM profile_token WHERE expires_at < NOW() - INTERVAL 7 DAY");
+} catch (PDOException $e) {
+    error_log('Token cleanup error: ' . $e->getMessage());
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once __DIR__ . '/../config/config.php';
     require_once __DIR__ . '/../config/account-ratelimit.php'; 
     require_once __DIR__ . '/../config/account-emailtoken.php';
     
