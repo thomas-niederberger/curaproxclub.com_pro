@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-require_once __DIR__ . '/../partials/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -9,25 +9,24 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $data = json_decode(file_get_contents('php://input'), true);
-$profileId = $data['profile_id'] ?? null;
-$locationId = $data['location_id'] ?? null;
+$id = $data['id'] ?? null;
 
-if (!$profileId || !$locationId) {
+if (!$id) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Profile ID and Location ID are required']);
+    echo json_encode(['success' => false, 'error' => 'ID is required']);
     exit;
 }
 
 try {
     $pdo = getDbConnection();
     
-    // Delete assignment
-    $stmt = $pdo->prepare('DELETE FROM ohc_profile WHERE profile_id = ? AND location_id = ?');
-    $stmt->execute([$profileId, $locationId]);
+    // Delete location (cascade will handle related records)
+    $stmt = $pdo->prepare('DELETE FROM ohc_location WHERE id = ?');
+    $stmt->execute([$id]);
     
     if ($stmt->rowCount() === 0) {
         http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'Assignment not found']);
+        echo json_encode(['success' => false, 'error' => 'Location not found']);
         exit;
     }
     

@@ -4,7 +4,7 @@ $error = null;
 if (!isset($_GET['token'])) {
 $error = 'Invalid login link.';
 } else {
-require_once __DIR__ . '/partials/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 $pdo = getDbConnection();
 $token = $_GET['token'];

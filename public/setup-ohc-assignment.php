@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/partials/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 $pdo = getDbConnection();
 
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			const profileId = this.getAttribute('data-profile-id');
 			const locationId = this.getAttribute('data-location-id');
 			
-			fetch('api/ohc_assignment_delete.php', {
+			fetch('/api/ohc_assignment_delete.php', {
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
 				body: JSON.stringify({

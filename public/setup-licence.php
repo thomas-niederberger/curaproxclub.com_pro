@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/partials/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 $pdo = getDbConnection();
 $stmt = $pdo->prepare('SELECT id, first_name, last_name, email, licence_number, licence_state, licence_verified, id_hubspot_b2b_contact, id_hubspot_b2c_contact, id_shopify_b2c FROM profile ORDER BY created_at DESC');

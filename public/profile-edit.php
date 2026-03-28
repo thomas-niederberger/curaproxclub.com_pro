@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/partials/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 // Handle AJAX request to update profile timestamp
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {

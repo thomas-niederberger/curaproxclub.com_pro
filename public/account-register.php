@@ -16,9 +16,9 @@ $usStates = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once __DIR__ . '/partials/config.php';
+    require_once __DIR__ . '/../config/config.php';
     require_once __DIR__ . '/partials/rate_limit.php';
-    require_once __DIR__ . '/partials/account-emailtoken.php';
+    require_once __DIR__ . '/../config/account-emailtoken.php';
     
     // Rate limiting: 5 requests per 60 seconds
     if (!checkRateLimit('register', 5, 60)) {

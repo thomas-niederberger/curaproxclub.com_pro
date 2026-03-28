@@ -5,7 +5,7 @@
  */
 
 // Load Composer autoloader and import Parsedown at the absolute top
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 use Parsedown;
 
 // Prevent multiple loading of the configuration file
@@ -50,7 +50,7 @@ function getDbConnection() {
     static $pdo = null;
     
     if ($pdo === null) {
-        $envPath = dirname(__DIR__) . '/../.env';
+        $envPath = __DIR__ . '/../.env';
         loadEnv($envPath);
         
         $host = $_ENV['DB_HOST'] ?? '';

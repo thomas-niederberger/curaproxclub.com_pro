@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/partials/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 $pdo = getDbConnection();
 
@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			
 			const pageId = this.getAttribute('data-id');
 			
-			fetch('api/page_delete.php', {
+			fetch('/api/page_delete.php', {
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
 				body: JSON.stringify({ id: pageId })
@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				loadingOverlay.classList.remove('hidden');
 				
 				// Send reorder request
-				fetch('api/page_reorder_drag.php', {
+				fetch('/api/page_reorder_drag.php', {
 					method: 'POST',
 					headers: {'Content-Type': 'application/json'},
 					body: JSON.stringify({

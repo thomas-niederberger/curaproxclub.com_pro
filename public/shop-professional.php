@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/partials/config.php';
+require_once __DIR__ . '/../config/config.php';
 $hasApplied = isset($currentProfile['professionalshop_tag']) && $currentProfile['professionalshop_tag'] !== null;
 $isConfirmed = isset($currentProfile['professionalshop_confirmed']) && $currentProfile['professionalshop_confirmed'] !== null;
 $hubspotData = null;

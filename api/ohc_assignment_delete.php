@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-require_once __DIR__ . '/../partials/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -21,18 +21,15 @@ if (!$profileId || !$locationId) {
 try {
     $pdo = getDbConnection();
     
-    // Check if assignment already exists
-    $stmt = $pdo->prepare('SELECT 1 FROM ohc_profile WHERE profile_id = ? AND location_id = ?');
+    // Delete assignment
+    $stmt = $pdo->prepare('DELETE FROM ohc_profile WHERE profile_id = ? AND location_id = ?');
     $stmt->execute([$profileId, $locationId]);
-    if ($stmt->fetch()) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'This assignment already exists']);
+    
+    if ($stmt->rowCount() === 0) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'error' => 'Assignment not found']);
         exit;
     }
-    
-    // Insert new assignment
-    $stmt = $pdo->prepare('INSERT INTO ohc_profile (profile_id, location_id) VALUES (?, ?)');
-    $stmt->execute([$profileId, $locationId]);
     
     echo json_encode(['success' => true]);
 } catch (PDOException $e) {

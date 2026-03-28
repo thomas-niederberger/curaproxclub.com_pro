@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/partials/config.php';
+require_once __DIR__ . '/../config/config.php';
 $pdo = getDbConnection();
 $stmt = $pdo->prepare('SELECT * FROM page WHERE sort_dashboard IS NOT NULL ORDER BY sort_dashboard ASC, id ASC');
 $stmt->execute();

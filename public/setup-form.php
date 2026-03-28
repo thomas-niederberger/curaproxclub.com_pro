@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/partials/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 $pdo = getDbConnection();
 $stmt = $pdo->query('SELECT * FROM form ORDER BY id');
@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const formId = this.getAttribute('data-form-id');
       const questionId = this.getAttribute('data-question-id');
       
-      fetch('api/settings_forms_delete.php', {
+      fetch('/api/settings_forms_delete.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
           });
         });
         
-        fetch('api/settings_forms_reorder.php', {
+        fetch('/api/settings_forms_reorder.php', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({

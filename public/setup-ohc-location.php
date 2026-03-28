@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/partials/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 $pdo = getDbConnection();
 $stmt = $pdo->query('SELECT * FROM ohc_location ORDER BY state ASC, city ASC');
@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			
 			const locationId = this.getAttribute('data-id');
 			
-			fetch('api/ohc_location_delete.php', {
+			fetch('/api/ohc_location_delete.php', {
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
 				body: JSON.stringify({ id: locationId })

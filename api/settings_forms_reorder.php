@@ -1,19 +1,16 @@
 <?php
 header('Content-Type: application/json');
-require_once __DIR__ . '/../partials/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 
-if (!isset($input['form_id']) || !isset($input['question_id']) || !isset($input['label']) || !isset($input['type'])) {
+if (!isset($input['form_id']) || !isset($input['questions'])) {
     echo json_encode(['success' => false, 'error' => 'Missing required fields']);
     exit;
 }
 
 $formId = $input['form_id'];
-$questionId = $input['question_id'];
-$label = $input['label'];
-$type = $input['type'];
-$required = isset($input['required']) ? (bool)$input['required'] : false;
+$questionOrder = $input['questions'];
 
 try {
     $pdo = getDbConnection();
@@ -29,21 +26,16 @@ try {
     
     $questions = json_decode($form['questions'], true);
     
-    $found = false;
-    foreach ($questions as &$question) {
-        if ($question['id'] === $questionId) {
-            $question['label'] = $label;
-            $question['type'] = $type;
-            $question['required'] = $required;
-            $found = true;
-            break;
-        }
+    $orderMap = [];
+    foreach ($questionOrder as $item) {
+        $orderMap[$item['id']] = $item['order'];
     }
     
-    if (!$found) {
-        echo json_encode(['success' => false, 'error' => 'Question not found']);
-        exit;
-    }
+    usort($questions, function($a, $b) use ($orderMap) {
+        $orderA = isset($orderMap[$a['id']]) ? $orderMap[$a['id']] : 999;
+        $orderB = isset($orderMap[$b['id']]) ? $orderMap[$b['id']] : 999;
+        return $orderA - $orderB;
+    });
     
     $stmt = $pdo->prepare("UPDATE form SET questions = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
     $stmt->execute([json_encode($questions), $formId]);

@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/partials/config.php';
+require_once __DIR__ . '/../config/config.php';
 $pdo = getDbConnection();
 $booking = null;
 $location = null;
