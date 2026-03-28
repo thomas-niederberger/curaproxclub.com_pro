@@ -1,6 +1,8 @@
 <?php
 header('Content-Type: application/json');
+define('API_REQUEST', true);
 require_once __DIR__ . '/../config/config.php';
+requireAuth();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -12,7 +14,7 @@ $pdo = getDbConnection();
 $data = json_decode(file_get_contents('php://input'), true);
 
 $bookingId = $data['booking_id'] ?? null;
-$profileId = $data['profile_id'] ?? null;
+$profileId = $currentProfileId;
 $formId = $data['form_id'] ?? null;
 $answers = $data['answers'] ?? [];
 
@@ -69,9 +71,7 @@ try {
         'message' => 'Questions saved'
     ]);
 } catch (PDOException $e) {
+    error_log('brushlearn-book_save_questions error: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Database error: ' . $e->getMessage()
-    ]);
+    echo json_encode(['success' => false, 'error' => 'An internal error occurred']);
 }

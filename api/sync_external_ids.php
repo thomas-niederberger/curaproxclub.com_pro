@@ -1,20 +1,17 @@
 <?php
 header('Content-Type: application/json');
+define('API_REQUEST', true);
 require_once __DIR__ . '/../config/config.php';
+requireAuth();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'error' => 'Invalid request method']);
-    exit;
-}
-
-if (!isset($_SESSION['profile_id'])) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+    http_response_code(405);
+    echo json_encode(['success' => false, 'error' => 'Method not allowed']);
     exit;
 }
 
 $data = json_decode(file_get_contents('php://input'), true);
-$profileId = $data['profile_id'] ?? $_SESSION['profile_id'];
+$profileId = $currentProfileId;
 $email = $data['email'] ?? '';
 
 if (empty($email)) {
@@ -41,6 +38,7 @@ try {
     ]);
     
 } catch (Exception $e) {
+    error_log('sync_external_ids error: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'error' => 'An internal error occurred']);
 }

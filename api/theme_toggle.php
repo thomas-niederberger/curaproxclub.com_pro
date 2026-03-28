@@ -1,6 +1,8 @@
 <?php
 header('Content-Type: application/json');
+define('API_REQUEST', true);
 require_once __DIR__ . '/../config/config.php';
+requireAuth();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);

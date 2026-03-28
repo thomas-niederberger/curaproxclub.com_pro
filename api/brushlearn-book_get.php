@@ -1,6 +1,8 @@
 <?php
 header('Content-Type: application/json');
+define('API_REQUEST', true);
 require_once __DIR__ . '/../config/config.php';
+requireAuth();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
@@ -9,13 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 $pdo = getDbConnection();
-$profileId = $_GET['profile_id'] ?? null;
-
-if (!$profileId) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Missing profile_id']);
-    exit;
-}
+$profileId = $currentProfileId;
 
 try {
     $stmt = $pdo->prepare('
@@ -47,9 +43,7 @@ try {
         ]);
     }
 } catch (PDOException $e) {
+    error_log('brushlearn-book_get error: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Database error: ' . $e->getMessage()
-    ]);
+    echo json_encode(['success' => false, 'error' => 'An internal error occurred']);
 }

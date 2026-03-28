@@ -1,6 +1,9 @@
 <?php
 header('Content-Type: application/json');
+define('API_REQUEST', true);
 require_once __DIR__ . '/../config/config.php';
+requireAuth();
+requireRole('admin');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -32,9 +35,7 @@ try {
     
     echo json_encode(['success' => true]);
 } catch (PDOException $e) {
+    error_log('ohc_location_delete error: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Database error: ' . $e->getMessage()
-    ]);
+    echo json_encode(['success' => false, 'error' => 'An internal error occurred']);
 }

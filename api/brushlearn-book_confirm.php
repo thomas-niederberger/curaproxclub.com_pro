@@ -1,6 +1,8 @@
 <?php
 header('Content-Type: application/json');
+define('API_REQUEST', true);
 require_once __DIR__ . '/../config/config.php';
+requireAuth();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -12,7 +14,7 @@ $pdo = getDbConnection();
 $data = json_decode(file_get_contents('php://input'), true);
 
 $bookingId = $data['booking_id'] ?? null;
-$profileId = $data['profile_id'] ?? null;
+$profileId = $currentProfileId;
 $calBookingId = $data['cal_booking_id'] ?? null;
 $bookingDate = $data['booking_date'] ?? null;
 $contactId = $data['contact_id'] ?? null;

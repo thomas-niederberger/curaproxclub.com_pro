@@ -1,14 +1,10 @@
 <?php
 header('Content-Type: application/json');
+define('API_REQUEST', true);
 require_once __DIR__ . '/../config/config.php';
+requireAuth();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get current user's profile
-    if (!isset($currentProfile) || !isset($currentProfile['id'])) {
-        http_response_code(401);
-        echo json_encode(['success' => false, 'error' => 'User not authenticated']);
-        exit;
-    }
 
     // Check if user has Shopify B2C ID
     if (!isset($currentProfile['id_shopify_b2c']) || empty($currentProfile['id_shopify_b2c'])) {
@@ -82,8 +78,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => true, 'message' => 'Professional tag added successfully']);
         exit;
     } catch (Exception $e) {
+        error_log('shopify_tag error: ' . $e->getMessage());
         http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Database update failed: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'error' => 'An internal error occurred']);
         exit;
     }
 }
