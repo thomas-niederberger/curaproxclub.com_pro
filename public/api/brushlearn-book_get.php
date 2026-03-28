@@ -1,8 +1,6 @@
 <?php
-require_once __DIR__ . '/../partials/config.php';
-require_once __DIR__ . '/functions.php';
-
 header('Content-Type: application/json');
+require_once __DIR__ . '/../partials/config.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
