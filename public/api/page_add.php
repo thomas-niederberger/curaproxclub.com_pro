@@ -25,12 +25,12 @@ if (empty($name) || empty($header)) {
 try {
     $pdo = getDbConnection();
     
-    // Get the next sort_order value
-    $stmt = $pdo->query('SELECT COALESCE(MAX(sort_order), 0) + 1 AS next_order FROM page');
+    // Get the next sort_sidebar value
+    $stmt = $pdo->query('SELECT COALESCE(MAX(sort_sidebar), 0) + 1 AS next_order FROM page');
     $nextOrder = $stmt->fetch(PDO::FETCH_ASSOC)['next_order'];
     
     $stmt = $pdo->prepare('
-        INSERT INTO page (name, header, description_short, description, icon, is_active, sort_order, created_at)
+        INSERT INTO page (name, header, description_short, description, icon, is_active, sort_sidebar, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
     ');
     

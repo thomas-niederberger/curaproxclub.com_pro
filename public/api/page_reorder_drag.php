@@ -22,7 +22,7 @@ try {
     $pdo = getDbConnection();
     
     // Get both pages
-    $stmt = $pdo->prepare('SELECT id, sort_order FROM page WHERE id IN (?, ?)');
+    $stmt = $pdo->prepare('SELECT id, sort_sidebar FROM page WHERE id IN (?, ?)');
     $stmt->execute([$draggedId, $targetId]);
     $pages = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
@@ -42,8 +42,8 @@ try {
         }
     }
     
-    // Get all pages ordered by sort_order
-    $stmt = $pdo->query('SELECT id, sort_order FROM page ORDER BY sort_order ASC');
+    // Get all pages ordered by sort_sidebar
+    $stmt = $pdo->query('SELECT id, sort_sidebar FROM page ORDER BY sort_sidebar ASC');
     $allPages = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     // Remove dragged page from its current position
@@ -67,7 +67,7 @@ try {
     // Update all sort orders
     $pdo->beginTransaction();
     
-    $stmt = $pdo->prepare('UPDATE page SET sort_order = ? WHERE id = ?');
+    $stmt = $pdo->prepare('UPDATE page SET sort_sidebar = ? WHERE id = ?');
     foreach ($filteredPages as $index => $page) {
         $newOrder = ($index + 1) * 10; // Use increments of 10 for easier manual adjustments
         $stmt->execute([$newOrder, $page['id']]);

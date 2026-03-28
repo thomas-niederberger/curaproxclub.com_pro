@@ -4,7 +4,7 @@ require_once __DIR__ . '/partials/config.php';
 $pdo = getDbConnection();
 
 // Fetch all pages
-$stmt = $pdo->query('SELECT * FROM page ORDER BY sort_order ASC, id ASC');
+$stmt = $pdo->query('SELECT * FROM page ORDER BY sort_sidebar ASC, id ASC');
 $allPages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Organize pages hierarchically: parents first, then their children

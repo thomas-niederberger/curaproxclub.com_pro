@@ -18,7 +18,7 @@
 			</div>
 		</div>
 		<div class="flex items-center pr-0 md:pr-4">
-			<div class="flex items-center pr-2 md:pr-4">
+			<div class="hidden md:inline-flex items-center pr-2 md:pr-4">
 				<button type="button" id="theme-toggle" role="switch" class="group relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 bg-gray-800 dark:bg-gray-800">
 					<span class="sr-only">Toggle dark mode</span>
 					<span id="theme-toggle-knob" class="pointer-events-none relative inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-in-out">

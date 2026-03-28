@@ -1,6 +1,6 @@
 <?php
 $pdo = getDbConnection();
-$stmt = $pdo->prepare('SELECT * FROM page WHERE is_active = 1 ORDER BY sort_order ASC, id ASC');
+$stmt = $pdo->prepare('SELECT * FROM page WHERE is_active = 1 ORDER BY sort_sidebar ASC, id ASC');
 $stmt->execute();
 $allPages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -59,7 +59,7 @@ foreach ($filteredPages as $page) {
 				$hasChildren = isset($childPages[$parent['id']]) && !empty($childPages[$parent['id']]);
 				$showSeparator = ($parent['id'] == 10);
 			?>
-				<li <?= $showSeparator ? 'class="pt-2 mt-2 border-t border-gray-600"' : '' ?>>
+				<li <?= $showSeparator ? 'class="pt-2 mt-2 border-t border-gray-300 dark:border-gray-600"' : '' ?>>
 					<?php if ($hasChildren): ?>
 					<?php 
 					$hasActiveChild = false;

@@ -463,7 +463,7 @@ if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
 			
 			// Save booking confirmation to database and create HubSpot meeting
 			try {
-				const response = await fetch('/api/booking_confirm.php', {
+				const response = await fetch('/api/brushlearn-book_confirm.php', {
 					method: 'POST',
 					headers: {'Content-Type': 'application/json'},
 					body: JSON.stringify({
@@ -672,7 +672,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Load existing booking data on page load
 	async function loadExistingBooking() {
 		try {
-			const response = await fetch('/api/booking_get.php?profile_id=' + currentUser.id);
+			const response = await fetch('/api/brushlearn-book_get.php?profile_id=' + currentUser.id);
 			const data = await response.json();
 			
 			if (data.success && data.booking) {
@@ -762,7 +762,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			
 			// Create or update booking in database
 			try {
-				const response = await fetch('/api/booking_create.php', {
+				const response = await fetch('/api/brushlearn-book_create.php', {
 					method: 'POST',
 					headers: {'Content-Type': 'application/json'},
 					body: JSON.stringify({
@@ -971,7 +971,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		const answers = collectAnswers(stepElement);
 		
 		try {
-			const response = await fetch('/api/booking_save_questions.php', {
+			const response = await fetch('/api/brushlearn-book_save_questions.php', {
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
 				body: JSON.stringify({

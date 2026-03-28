@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/partials/config.php';
 $pdo = getDbConnection();
-$stmt = $pdo->prepare('SELECT * FROM page WHERE is_dashboard = 1 ORDER BY sort_order ASC, id ASC');
+$stmt = $pdo->prepare('SELECT * FROM page WHERE sort_dashboard IS NOT NULL ORDER BY sort_dashboard ASC, id ASC');
 $stmt->execute();
 $pages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>

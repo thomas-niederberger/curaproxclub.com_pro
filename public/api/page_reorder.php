@@ -22,7 +22,7 @@ try {
     $pdo = getDbConnection();
     
     // Get current page
-    $stmt = $pdo->prepare('SELECT id, sort_order FROM page WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT id, sort_sidebar FROM page WHERE id = ?');
     $stmt->execute([$id]);
     $currentPage = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -31,23 +31,23 @@ try {
         exit;
     }
     
-    $currentOrder = $currentPage['sort_order'];
+    $currentOrder = $currentPage['sort_sidebar'];
     
     // Find the page to swap with
     if ($direction === 'up') {
         $stmt = $pdo->prepare('
-            SELECT id, sort_order 
+            SELECT id, sort_sidebar 
             FROM page 
-            WHERE sort_order < ? 
-            ORDER BY sort_order DESC 
+            WHERE sort_sidebar < ? 
+            ORDER BY sort_sidebar DESC 
             LIMIT 1
         ');
     } else {
         $stmt = $pdo->prepare('
-            SELECT id, sort_order 
+            SELECT id, sort_sidebar 
             FROM page 
-            WHERE sort_order > ? 
-            ORDER BY sort_order ASC 
+            WHERE sort_sidebar > ? 
+            ORDER BY sort_sidebar ASC 
             LIMIT 1
         ');
     }
@@ -63,10 +63,10 @@ try {
     // Swap sort orders
     $pdo->beginTransaction();
     
-    $stmt = $pdo->prepare('UPDATE page SET sort_order = ? WHERE id = ?');
-    $stmt->execute([$swapPage['sort_order'], $id]);
+    $stmt = $pdo->prepare('UPDATE page SET sort_sidebar = ? WHERE id = ?');
+    $stmt->execute([$swapPage['sort_sidebar'], $id]);
     
-    $stmt = $pdo->prepare('UPDATE page SET sort_order = ? WHERE id = ?');
+    $stmt = $pdo->prepare('UPDATE page SET sort_sidebar = ? WHERE id = ?');
     $stmt->execute([$currentOrder, $swapPage['id']]);
     
     $pdo->commit();
