@@ -17,7 +17,15 @@ $usStates = [
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once __DIR__ . '/partials/config.php';
+    require_once __DIR__ . '/partials/rate_limit.php';
     require_once __DIR__ . '/partials/account-emailtoken.php';
+    
+    // Rate limiting: 5 requests per 60 seconds
+    if (!checkRateLimit('register', 5, 60)) {
+        http_response_code(429);
+        header('Retry-After: 60');
+        $error = 'Too many requests. Please wait a moment and try again.';
+    } else {
     
     $pdo = getDbConnection();
     
@@ -66,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 error_log('Registration error: ' . $e->getMessage());
             }
         }
+    }
     }
 }
 
