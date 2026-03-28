@@ -1,3 +1,20 @@
-RewriteRule ^api/(.+\.php)$ api.php
-RewriteCond %{REQUEST_URI} ^/api\.php$
+RewriteEngine On
+RewriteBase /
+
+# ── Security headers ────────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# ── Block direct browser access to api.php ───────────────────────────────────
+RewriteCond %{THE_REQUEST} \s/api\.php[\s?]
 RewriteRule ^ - [F,L]
+
+# ── Route /api/*.php → api.php router ────────────────────────────────────────
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/([a-zA-Z0-9_\-]+\.php)$ api.php [L,QSA]
