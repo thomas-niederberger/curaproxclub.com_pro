@@ -4,8 +4,8 @@ $success = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once __DIR__ . '/partials/config.php';
-    require_once __DIR__ . '/partials/rate_limit.php';
-    require_once __DIR__ . '/partials/account-ratelimit.php';
+    require_once __DIR__ . '/partials/account-ratelimit.php'; 
+    require_once __DIR__ . '/partials/account-emailtoken.php';
     
     // Rate limiting: 5 requests per 60 seconds
     if (!checkRateLimit('login', 5, 60)) {
