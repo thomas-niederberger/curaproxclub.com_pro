@@ -44,25 +44,11 @@ if (isset($_GET['msg'])) {
     $message = $messages[$_GET['msg']] ?? '';
 }
 
-// Fetch HubSpot B2B data if available
-$hubspotData = null;
-if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
-    $hubspotData = getHubSpotB2BData($currentProfile['id_hubspot_b2b_contact']);
-}
-
 // Use database profile data for name and email
 $firstName = htmlspecialchars($currentProfile['first_name'] ?? '');
-$lastName = htmlspecialchars($currentProfile['last_name'] ?? '');
-$email = htmlspecialchars($currentProfile['email'] ?? '');
-
-// Get additional fields from HubSpot if available
-$jobTitle = '';
-$phone = '';
-
-if ($hubspotData && !empty($hubspotData['contact'])) {
-    $jobTitle = htmlspecialchars($hubspotData['contact']['jobtitle'] ?? '');
-    $phone = htmlspecialchars($hubspotData['contact']['phone'] ?? '');
-}
+$lastName  = htmlspecialchars($currentProfile['last_name'] ?? '');
+$email     = htmlspecialchars($currentProfile['email'] ?? '');
+$hasHubSpotContact = !empty($currentProfile['id_hubspot_b2b_contact']);
 
 $avatar = $currentProfile['avatar'] ?? '';
 $avatarUrl = $avatar ? 'uploads/avatars/' . htmlspecialchars($avatar) : '';
@@ -101,9 +87,7 @@ $calToken = htmlspecialchars($currentProfile['cal_token'] ?? '');
 					</div>
 					<div class="flex-1 min-w-0">
 						<h2 class="text-lg font-bold text-gray-400 truncate"><?= $firstName ?> <?= $lastName ?></h2>
-						<?php if ($jobTitle): ?>
-						<p class="text-gray-400 text-base"><?= $jobTitle ?></p>
-						<?php endif; ?>
+						<p id="hs-jobtitle" class="text-gray-400 text-base hidden"></p>
 					</div>
 				</div>
 
@@ -114,7 +98,9 @@ $calToken = htmlspecialchars($currentProfile['cal_token'] ?? '');
 					</div>
 					<div>
 						<label class="block text-xs font-medium uppercase text-gray-400 mb-1">Phone</label>
-						<p class="text-gray-400"><?= $phone ?></p>
+						<p id="hs-phone" class="text-gray-400">
+							<span class="animate-pulse inline-block h-4 w-28 bg-gray-600 rounded align-middle"></span>
+						</p>
 					</div>
 					<div>
 						<label class="block text-xs font-medium uppercase text-gray-400 mb-1">Licence Number</label>
@@ -189,6 +175,31 @@ $calToken = htmlspecialchars($currentProfile['cal_token'] ?? '');
 </main>
 
 <?php include 'partials/footer.php'; ?>
+
+<?php if ($hasHubSpotContact): ?>
+<script>
+(function () {
+    fetch('/api/hubspot_data_get.php')
+        .then(r => r.json())
+        .then(res => {
+            if (!res.success) return;
+            const contact = res.data.contact || {};
+
+            const jobtitleEl = document.getElementById('hs-jobtitle');
+            if (jobtitleEl && contact.jobtitle) {
+                jobtitleEl.textContent = contact.jobtitle;
+                jobtitleEl.classList.remove('hidden');
+            }
+            const phoneEl = document.getElementById('hs-phone');
+            if (phoneEl) phoneEl.textContent = contact.phone || '—';
+        })
+        .catch(() => {
+            const phoneEl = document.getElementById('hs-phone');
+            if (phoneEl) phoneEl.textContent = '—';
+        });
+})();
+</script>
+<?php endif; ?>
 
 <script>
 document.getElementById('calcomForm').addEventListener('submit', async function(e) {

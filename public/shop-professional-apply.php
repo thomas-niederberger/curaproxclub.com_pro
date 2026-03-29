@@ -22,104 +22,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
 			'profile_id' => $_SESSION['profile_id']
 		]);
 	} catch (Exception $e) {
+		error_log('shop-professional-apply error: ' . $e->getMessage());
 		http_response_code(500);
-		echo json_encode([
-			'success' => false,
-			'error' => 'Database error: ' . $e->getMessage()
-		]);
+		echo json_encode(['success' => false, 'error' => 'An internal error occurred']);
 	}
 	exit;
 }
 
-function getHubSpotUrlParams($contactId, $formId) {
-	$token = $_ENV['hubspotTokenB2B'] ?? '';
-	if (empty($token) || empty($contactId) || empty($formId)) return "error=missing_data";
-
-	// Fetch Form Definition
-	$ch = curl_init("https://api.hubapi.com/marketing/v3/forms/{$formId}");
-	curl_setopt_array($ch, [
-		CURLOPT_RETURNTRANSFER => true,
-		CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $token]
-	]);
-	$formRes = curl_exec($ch);
-	$formDef = json_decode($formRes, true);
-	curl_close($ch);
-
-	if (!isset($formDef['fieldGroups'])) return "error=form_not_found";
-
-	$contactFields = [];
-	$companyFields = [];
-
-	// Sort fields into Contact vs Company buckets
-	foreach ($formDef['fieldGroups'] as $group) {
-		foreach ($group['fields'] as $field) {
-			$name = $field['name'];
-			if (str_starts_with($name, 'hs_') || str_starts_with($name, 'LEGAL_CONSENT')) continue;
-
-			if (($field['objectTypeId'] ?? '') === '0-2') {
-				$companyFields[] = $name;
-			} else {
-				$contactFields[] = $name;
-			}
-		}
-	}
-
-	// Build Valid GraphQL Syntax
-	$contactFieldsStr = implode("\n", array_unique($contactFields));
-	$companyFieldsStr = !empty($companyFields) ? "associations { company_collection__primary { items { " . implode("\n", array_unique($companyFields)) . " } } }" : "";
-
-	$query = "query GetContactData(\$id: String!) {
-		CRM {
-			contact(uniqueIdentifier: \"hs_object_id\", uniqueIdentifierValue: \$id) {
-				{$contactFieldsStr}
-				{$companyFieldsStr}
-			}
-		}
-	}";
-
-	// Execute Query
-	$ch = curl_init('https://api.hubapi.com/collector/graphql');
-	curl_setopt_array($ch, [
-		CURLOPT_RETURNTRANSFER => true,
-		CURLOPT_POST => true,
-		CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $token, 'Content-Type: application/json'],
-		CURLOPT_POSTFIELDS => json_encode(['query' => $query, 'variables' => ['id' => (string)$contactId]])
-	]);
-	$graphqlRes = curl_exec($ch);
-	$result = json_decode($graphqlRes, true);
-	curl_close($ch);
-	if (isset($result['errors'])) {
-		error_log("GraphQL Syntax Error: " . json_encode($result['errors']));
-		return "error=syntax_check_logs";
-	}
-
-	$contact = $result['data']['CRM']['contact'] ?? null;
-	if (!$contact) return "error=no_contact_data";
-
-	// Flatten results for the URL
-	$params = [];
-	$getVal = fn($v) => is_array($v) ? ($v['label'] ?? '') : $v;
-
-	foreach ($contactFields as $f) {
-		$params[$f] = $getVal($contact[$f] ?? '');
-	}
-
-	$company = ($contact['associations']['company_collection__primary']['items'] ?? [])[0] ?? null;
-	if ($company) {
-		foreach ($companyFields as $f) {
-			$params[$f] = $getVal($company[$f] ?? '');
-		}
-	}
-	
-	return http_build_query(array_filter($params));
-}
-
 $formId = 'c3cc6ce5-5f00-4ff6-9811-b15b8ae37f2d';
-$prefillQuery = "";
-
-if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
-	$prefillQuery = getHubSpotUrlParams($currentProfile['id_hubspot_b2b_contact'], $formId);
-}
+$hasHubSpotContact = !empty($currentProfile['id_hubspot_b2b_contact']);
 ?>
 
 <!DOCTYPE html>
@@ -139,39 +50,53 @@ if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
 			<?= $pageDescription ?>
 		</div>
 	</section>
-	<script>
-    (function() {
-        const query = "<?= $prefillQuery ?>";
-        if (query && !window.location.search) {
-            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' + query;
-            window.history.replaceState({ path: newUrl }, '', newUrl);
-        }
+	<script src="https://js-eu1.hsforms.net/forms/embed/developer/27229630.js" defer></script>
+    <div class="hs-form-html"
+         data-region="eu1"
+         data-form-id="<?= $formId ?>"
+         data-portal-id="27229630">
+    </div>
 
+    <script>
+    (function () {
+        <?php if ($hasHubSpotContact): ?>
+        // Fetch prefill data asynchronously so the page renders immediately
+        fetch('/api/hubspot_prefill_get.php?form_id=<?= urlencode($formId) ?>')
+            .then(r => r.json())
+            .then(res => {
+                if (!res.success || !res.query_string) return;
+
+                // Apply the prefill params to the URL without a page reload
+                if (!window.location.search) {
+                    const newUrl = window.location.protocol + '//' + window.location.host +
+                                   window.location.pathname + '?' + res.query_string;
+                    window.history.replaceState({ path: newUrl }, '', newUrl);
+                }
+            })
+            .catch(() => { /* prefill is best-effort; form still works without it */ });
+
+        // Prefill radio/checkbox inputs once the HubSpot form is ready
         window.addEventListener('message', event => {
             if (event.data.type === 'hsFormCallback' && event.data.eventName === 'onFormReady') {
                 const urlParams = new URLSearchParams(window.location.search);
                 const form = document.querySelector('.hs-form-html form');
+                if (!form) return;
                 urlParams.forEach((value, key) => {
-                    const inputs = form.querySelectorAll(`input[name="${key}"][type="radio"], input[name$="/${key}"][type="radio"], input[name="${key}"][type="checkbox"], input[name$="/${key}"][type="checkbox"]`);
-                    inputs.forEach(input => {
+                    form.querySelectorAll(
+                        `input[name="${key}"][type="radio"], input[name$="/${key}"][type="radio"],` +
+                        `input[name="${key}"][type="checkbox"], input[name$="/${key}"][type="checkbox"]`
+                    ).forEach(input => {
                         if (input.value === value) {
                             input.checked = true;
                             input.dispatchEvent(new Event('change', { bubbles: true }));
-                            console.log(`✅ Prefilled Radio/Checkbox: ${key} = ${value}`);
                         }
                     });
                 });
             }
         });
+        <?php endif; ?>
     })();
     </script>
-
-    <script src="https://js-eu1.hsforms.net/forms/embed/developer/27229630.js" defer></script>
-    <div class="hs-form-html" 
-         data-region="eu1" 
-         data-form-id="<?= $formId ?>" 
-         data-portal-id="27229630">
-    </div>
 
     <script>
         window.addEventListener("hs-form-event:on-submission:success", async event => {

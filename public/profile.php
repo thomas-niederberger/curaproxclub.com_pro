@@ -56,25 +56,11 @@ if (isset($_GET['msg'])) {
     $message = $messages[$_GET['msg']] ?? '';
 }
 
-// Fetch HubSpot B2B data if available
-$hubspotData = null;
-if (!empty($currentProfile['id_hubspot_b2b_contact'])) {
-    $hubspotData = getHubSpotB2BData($currentProfile['id_hubspot_b2b_contact']);
-}
-
 // Use database profile data for name and email
 $firstName = htmlspecialchars($currentProfile['first_name'] ?? '');
-$lastName = htmlspecialchars($currentProfile['last_name'] ?? '');
-$email = htmlspecialchars($currentProfile['email'] ?? '');
-
-// Get additional fields from HubSpot if available
-$jobTitle = '';
-$phone = '';
-
-if ($hubspotData && !empty($hubspotData['contact'])) {
-    $jobTitle = htmlspecialchars($hubspotData['contact']['jobtitle'] ?? '');
-    $phone = htmlspecialchars($hubspotData['contact']['phone'] ?? '');
-}
+$lastName  = htmlspecialchars($currentProfile['last_name'] ?? '');
+$email     = htmlspecialchars($currentProfile['email'] ?? '');
+$hasHubSpotContact = !empty($currentProfile['id_hubspot_b2b_contact']);
 
 $avatar = $currentProfile['avatar'] ?? '';
 $avatarUrl = $avatar ? 'uploads/avatars/' . htmlspecialchars($avatar) : '';
@@ -82,28 +68,6 @@ $initials = $currentUserInitials;
 $licenceNumber = $currentProfile['licence_number'];
 $licenceVerified = $currentProfile['licence_verified'];
 
-// Configure which contact fields to display
-$displayContactFields = [
-    'address',
-    'address2',
-    'city',
-    'state',
-    'zip',
-    'country'
-];
-
-// Configure which company fields to display
-$displayCompanyFields = [
-    'name',
-    'address',
-    'address2',
-    'city',
-    'state',
-    'zip',
-    'country',
-    'phone',
-    'website'
-];
 ?>
 <!DOCTYPE html>
 <html class="h-full dark">
@@ -142,9 +106,7 @@ $displayCompanyFields = [
 					</div>
 					<div class="flex-1 min-w-0">
 						<h2 class="text-lg font-bold text-gray-400 truncate"><?= $firstName ?> <?= $lastName ?></h2>
-						<?php if ($jobTitle): ?>
-						<p class="text-gray-400 text-base"><?= $jobTitle ?></p>
-						<?php endif; ?>
+						<p id="hs-jobtitle" class="text-gray-400 text-base hidden"></p>
 					</div>
 				</div>
 
@@ -155,7 +117,9 @@ $displayCompanyFields = [
 					</div>
 					<div>
 						<label class="block text-xs font-medium uppercase text-gray-400 mb-1">Phone</label>
-						<p class="text-gray-400"><?= $phone ?></p>
+						<p id="hs-phone" class="text-gray-400">
+							<span class="animate-pulse inline-block h-4 w-28 bg-gray-600 rounded align-middle"></span>
+						</p>
 					</div>
 					<div>
 						<label class="block text-xs font-medium uppercase text-gray-400 mb-1">Licence Number</label>
@@ -174,55 +138,35 @@ $displayCompanyFields = [
 			</div>
 		</div>
 
-		<!-- HubSpot Data -->
+		<!-- HubSpot Data (loaded asynchronously) -->
 		<div class="lg:col-span-2 space-y-6">
-			<?php if ($hubspotData): ?>
-				<!-- Contact Information -->
-				<div class="dark:bg-gray-700 bg-gray-700 rounded-lg p-6 ">
-					<h3 class="text-xl font-bold text-gray-400 mb-6">Contact Information</h3>
-					<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-						<?php foreach ($displayContactFields as $fieldKey): ?>
-							<?php if (isset($hubspotData['contact'][$fieldKey]) && $hubspotData['contact'][$fieldKey]): ?>
-							<?php 
-								$value = $hubspotData['contact'][$fieldKey];
-								// Handle array values (like country field)
-								$displayValue = is_array($value) ? ($value['label'] ?? $value['value'] ?? '') : $value;
-							?>
-							<div>
-								<label class="block text-xs font-medium uppercase text-gray-400 mb-2"><?= ucfirst(str_replace('_', ' ', $fieldKey)) ?></label>
-								<p class="text-gray-400"><?= htmlspecialchars($displayValue) ?></p>
-							</div>
-							<?php endif; ?>
-						<?php endforeach; ?>
-					</div>
-				</div>
+			<?php if ($hasHubSpotContact): ?>
 
-				<!-- Company Information -->
-				<?php if (!empty($hubspotData['company'])): ?>
-				<div class="dark:bg-gray-700 bg-gray-700 rounded-lg p-6 ">
-					<h3 class="text-xl font-bold text-gray-400 mb-6">Company Information</h3>
-					<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-						<?php foreach ($displayCompanyFields as $fieldKey): ?>
-							<?php if (isset($hubspotData['company'][$fieldKey]) && $hubspotData['company'][$fieldKey]): ?>
-							<?php 
-								$value = $hubspotData['company'][$fieldKey];
-								// Handle array values (like country field)
-								$displayValue = is_array($value) ? ($value['label'] ?? $value['value'] ?? '') : $value;
-							?>
-							<div>
-								<label class="block text-xs font-medium uppercase text-gray-400 mb-2"><?= ucfirst(str_replace('_', ' ', $fieldKey)) ?></label>
-								<p class="text-gray-400"><?= htmlspecialchars($displayValue) ?></p>
-							</div>
-							<?php endif; ?>
-						<?php endforeach; ?>
+			<!-- Contact Information skeleton -->
+			<div id="hs-contact-section" class="dark:bg-gray-700 bg-gray-700 rounded-lg p-6">
+				<h3 class="text-xl font-bold text-gray-400 mb-6">Contact Information</h3>
+				<div id="hs-contact-content" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+					<?php for ($i = 0; $i < 4; $i++): ?>
+					<div class="animate-pulse">
+						<div class="h-3 bg-gray-600 rounded w-20 mb-2"></div>
+						<div class="h-4 bg-gray-600 rounded w-3/4"></div>
 					</div>
+					<?php endfor; ?>
 				</div>
-			<?php endif; ?>
+			</div>
+
+			<!-- Company Information (hidden until data arrives) -->
+			<div id="hs-company-section" class="dark:bg-gray-700 bg-gray-700 rounded-lg p-6 hidden">
+				<h3 class="text-xl font-bold text-gray-400 mb-6">Company Information</h3>
+				<div id="hs-company-content" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+			</div>
+
 			<?php else: ?>
-				<div class="dark:bg-gray-700 bg-gray-700 rounded-lg p-6 ">
-					<p class="text-gray-400">No data available for this profile.</p>
-				</div>
+			<div class="dark:bg-gray-700 bg-gray-700 rounded-lg p-6">
+				<p class="text-gray-400">No HubSpot data available for this profile.</p>
+			</div>
 			<?php endif; ?>
+
 			<!-- Action Buttons -->
 			<div class="mt-6 flex flex-wrap gap-3">
 				<a href="profile-edit.php" class="inline-flex gap-2 items-center px-6 py-2 bg-gray-500 hover:bg-orange text-gray-400 font-medium rounded-full transition-colors hover:text-white">
@@ -240,6 +184,71 @@ $displayCompanyFields = [
 </main>
 
 <?php include 'partials/footer.php'; ?>
+
+<?php if ($hasHubSpotContact): ?>
+<script>
+(function () {
+    const CONTACT_FIELDS = ['address', 'address2', 'city', 'state', 'zip', 'country'];
+    const COMPANY_FIELDS = ['name', 'address', 'address2', 'city', 'state', 'zip', 'country', 'phone', 'website'];
+
+    function fieldLabel(key) {
+        return key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+    }
+
+    function buildFields(obj, keys) {
+        return keys
+            .filter(k => obj[k])
+            .map(k => `<div>
+                <label class="block text-xs font-medium uppercase text-gray-400 mb-2">${fieldLabel(k)}</label>
+                <p class="text-gray-400">${obj[k]}</p>
+            </div>`)
+            .join('');
+    }
+
+    fetch('/api/hubspot_data_get.php')
+        .then(r => r.json())
+        .then(res => {
+            if (!res.success) return;
+            const contact = res.data.contact || {};
+            const company = res.data.company || {};
+
+            // Update profile card
+            const jobtitleEl = document.getElementById('hs-jobtitle');
+            if (jobtitleEl && contact.jobtitle) {
+                jobtitleEl.textContent = contact.jobtitle;
+                jobtitleEl.classList.remove('hidden');
+            }
+            const phoneEl = document.getElementById('hs-phone');
+            if (phoneEl) phoneEl.textContent = contact.phone || '—';
+
+            // Populate Contact Information panel
+            const contactContent = document.getElementById('hs-contact-content');
+            if (contactContent) {
+                const html = buildFields(contact, CONTACT_FIELDS);
+                contactContent.innerHTML = html || '<p class="text-gray-400 col-span-2">No contact details on record.</p>';
+            }
+
+            // Populate Company Information panel (show only if there is data)
+            const companySection = document.getElementById('hs-company-section');
+            const companyContent = document.getElementById('hs-company-content');
+            if (companySection && companyContent) {
+                const html = buildFields(company, COMPANY_FIELDS);
+                if (html) {
+                    companyContent.innerHTML = html;
+                    companySection.classList.remove('hidden');
+                }
+            }
+        })
+        .catch(() => {
+            const contactContent = document.getElementById('hs-contact-content');
+            if (contactContent) contactContent.innerHTML = '<p class="text-gray-400 col-span-2">Could not load profile data.</p>';
+            const phoneEl = document.getElementById('hs-phone');
+            if (phoneEl) phoneEl.textContent = '—';
+        });
+})();
+</script>
+<?php endif; ?>
+
 </div>
 </body>
 </html>

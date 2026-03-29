@@ -2,6 +2,7 @@
 header('Content-Type: application/json');
 define('API_REQUEST', true);
 require_once __DIR__ . '/../config/config.php';
+requireAuth();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -13,9 +14,8 @@ $input = json_decode(file_get_contents('php://input'), true);
 
 $profileId = $currentProfileId;
 $allowedFields = [
-    'first_name', 'last_name', 'email', 'phone',
-    'company_name', 'job_title', 'hubspot_company_id',
-    'hubspot_contact_id', 'avatar', 'cal_token',
+    'first_name', 'last_name', 'phone',
+    'company_name', 'job_title', 'avatar', 'cal_token',
     'cal_webhook', 'cal_url', 'theme', 'licence_no', 'licence_state'
 ];
 

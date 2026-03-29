@@ -56,9 +56,6 @@ try {
     
     // Create HubSpot meeting engagement if we have contact ID
     $meetingId = null;
-    $meetingDebug = [];
-    
-    error_log("Booking Confirm - Contact ID: " . ($contactId ?: 'NULL') . ", Company ID: " . ($companyId ?: 'NULL'));
     
     if ($contactId) {
         try {
@@ -193,8 +190,6 @@ try {
                 ];
             }
             
-            error_log("HubSpot Meeting Data: " . json_encode($meetingData));
-            
             // Call HubSpot API
             $ch = curl_init('https://api.hubapi.com/crm/v3/objects/meetings');
             curl_setopt_array($ch, [
@@ -216,8 +211,6 @@ try {
                 throw new Exception('cURL error: ' . $curlError);
             }
             
-            error_log("HubSpot API Response (HTTP {$httpCode}): " . substr($response, 0, 500));
-            
             if ($httpCode !== 201) {
                 $errorDetails = json_decode($response, true);
                 throw new Exception('HubSpot API error: ' . ($errorDetails['message'] ?? $response));
@@ -234,16 +227,9 @@ try {
             $stmt = $pdo->prepare('UPDATE ohc_booking SET hubspot_meeting_id = ? WHERE id = ?');
             $stmt->execute([$meetingId, $bookingId]);
             
-            error_log("HubSpot meeting created successfully: ID = {$meetingId}");
-            $meetingDebug = ['success' => true, 'meeting_id' => $meetingId];
-            
         } catch (Exception $e) {
             error_log("Failed to create HubSpot meeting: " . $e->getMessage());
-            $meetingDebug = ['error' => $e->getMessage()];
         }
-    } else {
-        error_log("Skipping HubSpot meeting creation - no contact ID available");
-        $meetingDebug = ['error' => 'No contact ID available'];
     }
     
     // TODO: Send confirmation email here
@@ -253,14 +239,10 @@ try {
         'success' => true,
         'booking_id' => $bookingId,
         'status' => 'confirmed',
-        'hubspot_meeting_id' => $meetingId,
-        'hubspot_meeting_debug' => $meetingDebug,
         'message' => 'Booking confirmed successfully'
     ]);
 } catch (PDOException $e) {
+    error_log('brushlearn-book_confirm error: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Database error: ' . $e->getMessage()
-    ]);
+    echo json_encode(['success' => false, 'error' => 'An internal error occurred']);
 }

@@ -1,5 +1,5 @@
 <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://unpkg.com/lucide@1.7.0/dist/umd/lucide.min.js"></script>
 <script>
     lucide.createIcons();
 

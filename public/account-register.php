@@ -17,7 +17,7 @@ $usStates = [
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once __DIR__ . '/../config/config.php';
-    require_once __DIR__ . '/partials/rate_limit.php';
+    require_once __DIR__ . '/../config/account-ratelimit.php';
     require_once __DIR__ . '/../config/account-emailtoken.php';
     
     // Rate limiting: 5 requests per 60 seconds
@@ -70,8 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = 'Registration successful, but we couldn\'t send the login email.<br>Please contact support@curaden.us.';
                 }
             } catch (Exception $e) {
-                $error = 'An error occurred during registration: ' . htmlspecialchars($e->getMessage());
                 error_log('Registration error: ' . $e->getMessage());
+                $error = 'An error occurred. Please try again or contact support@curaden.us.';
             }
         }
     }
