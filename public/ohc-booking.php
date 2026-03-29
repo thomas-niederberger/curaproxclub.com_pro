@@ -69,12 +69,11 @@ $totalDraft    = count(array_filter($bookings, fn($b) => $b['status'] === 'draft
 		<table class="w-full">
 			<thead class="bg-gray-600">
 				<tr>
+					<th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-400">Date</th>
 					<th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-400">Profile</th>
 					<th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-400">Location</th>
 					<th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-400">Type</th>
 					<th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-400">Status</th>
-					<th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-400">Booking Date</th>
-					<th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-400">Cal Booking</th>
 					<th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-400">HubSpot</th>
 				</tr>
 			</thead>
@@ -86,6 +85,9 @@ $totalDraft    = count(array_filter($bookings, fn($b) => $b['status'] === 'draft
 				<?php else: ?>
 					<?php foreach ($bookings as $b): ?>
 					<tr class="hover:bg-gray-600/50 transition-colors">
+						<td class="px-4 py-3 text-sm text-gray-400">
+							<?= $b['booking_date'] ? htmlspecialchars(date('m.d.Y, h:iA', strtotime($b['booking_date']))) : '<span class="text-gray-600">—</span>' ?>
+						</td>
 						<td class="px-4 py-3 text-sm text-gray-400">
 							<p><?= htmlspecialchars($b['first_name'] . ' ' . $b['last_name']) ?></p>
 							<p class="text-xs"><?= htmlspecialchars($b['email'] ?? '') ?></p>
@@ -111,31 +113,19 @@ $totalDraft    = count(array_filter($bookings, fn($b) => $b['status'] === 'draft
 								<span class="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full font-medium">Draft</span>
 							<?php endif; ?>
 						</td>
-						<td class="px-4 py-3 text-sm text-gray-400">
-							<?= $b['booking_date'] ? htmlspecialchars(date('M j, Y g:i A', strtotime($b['booking_date']))) : '<span class="text-gray-600">—</span>' ?>
-						</td>
-						<td class="px-4 py-3 text-sm text-gray-400 font-mono">
-							<?php if ($b['cal_booking_id']): ?>
-								<span class="text-xs bg-gray-600 px-2 py-1 rounded" title="<?= htmlspecialchars($b['cal_booking_id']) ?>">
-									<a href="https://cal.com/curaprox/ohc-booking?booking=<?= htmlspecialchars($b['cal_booking_id']) ?>" target="_blank"><?= htmlspecialchars(substr($b['cal_booking_id'], 0, 12)) ?>…</a>
-								</span>
-							<?php else: ?>
-								<span class="text-gray-600">—</span>
-							<?php endif; ?>
-						</td>
 						<td class="px-4 py-3">
 							<div class="flex gap-2">
+								<?php if ($b['cal_booking_id']): ?>
+									<a href="https://cal.com/booking/<?= htmlspecialchars($b['cal_booking_id']) ?>" target="_blank" class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg bg-gray-500 text-gray-400 hover:bg-orange hover:text-white transition-colors">Booking</a>
+								<?php endif; ?>
 								<?php if ($b['hubspot_meeting_id']): ?>
-								<a href="https://app-eu1.hubspot.com/contacts/27229630/record/0-1/<?= htmlspecialchars($b['id_hubspot_b2b_contact']) ?>/view/1?engagement=<?= htmlspecialchars($b['hubspot_meeting_id']) ?>&type=MEETING" target="_blank" class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg bg-gray-500 text-gray-400 hover:bg-orange hover:text-white transition-colors">Meeting</a>
+									<a href="https://app-eu1.hubspot.com/contacts/27229630/record/0-1/<?= htmlspecialchars($b['id_hubspot_b2b_contact']) ?>/view/1?engagement=<?= htmlspecialchars($b['hubspot_meeting_id']) ?>&type=MEETING" target="_blank" class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg bg-gray-500 text-gray-400 hover:bg-orange hover:text-white transition-colors">Meeting</a>
 								<?php endif; ?>
 								<?php if ($b['id_hubspot_b2b_contact']): ?>
-								<a href="https://app-eu1.hubspot.com/contacts/27229630/record/0-1/<?= htmlspecialchars($b['id_hubspot_b2b_contact']) ?>" target="_blank" class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg bg-gray-500 text-gray-400 hover:bg-orange hover:text-white transition-colors">Contact</a>
+									<a href="https://app-eu1.hubspot.com/contacts/27229630/record/0-1/<?= htmlspecialchars($b['id_hubspot_b2b_contact']) ?>" target="_blank" class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg bg-gray-500 text-gray-400 hover:bg-orange hover:text-white transition-colors">Contact</a>
 								<?php endif; ?>
 								<?php if ($b['id_hubspot_b2b_company']): ?>
-								<a href="https://app-eu1.hubspot.com/contacts/27229630/record/0-2/<?= htmlspecialchars($b['id_hubspot_b2b_company']) ?>" target="_blank" class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg bg-gray-500 text-gray-400 hover:bg-orange hover:text-white transition-colors">Company</a>
-								<?php endif; ?>
-								<?php if (!$b['id_hubspot_b2b_contact'] && !$b['id_hubspot_b2b_company']): ?>
-								<span class="text-gray-600">—</span>
+									<a href="https://app-eu1.hubspot.com/contacts/27229630/record/0-2/<?= htmlspecialchars($b['id_hubspot_b2b_company']) ?>" target="_blank" class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg bg-gray-500 text-gray-400 hover:bg-orange hover:text-white transition-colors">Company</a>
 								<?php endif; ?>
 							</div>
 						</td>

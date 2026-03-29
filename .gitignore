@@ -31,7 +31,7 @@ Thumbs.db
 *.min.css
 
 # Upload directories
-/_v1/
+/code-review.md
 /logs/
 /sql/
 /uploads/
