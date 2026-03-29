@@ -6,7 +6,6 @@
 
 // Load Composer autoloader and import Parsedown at the absolute top
 require_once __DIR__ . '/../vendor/autoload.php';
-use Parsedown;
 
 // Prevent multiple loading of the configuration file
 if (defined('CONFIG_LOADED')) return;
@@ -19,7 +18,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Set APP_ENV=development in your local .env only. Never on the server.
 if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
-    ini_set('display_errors', '1');
+    ini_set('display_errors', defined('API_REQUEST') ? '0' : '1');
     ini_set('display_startup_errors', '1');
     error_reporting(E_ALL);
 } else {

@@ -4,6 +4,8 @@ $pdo = getDbConnection();
 $stmt = $pdo->prepare('SELECT * FROM page WHERE sort_dashboard IS NOT NULL ORDER BY sort_dashboard ASC, id ASC');
 $stmt->execute();
 $pages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$isVerified = !empty($currentProfile['licence_verified']);
 ?>
 
 <!DOCTYPE html>

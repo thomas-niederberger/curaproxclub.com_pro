@@ -154,17 +154,17 @@ foreach ($allPages as $page) {
 			
 			<div>
 				<label for="pageName" class="block text-sm font-medium text-gray-400 mb-2">Name (Navigation) *</label>
-				<input type="text" id="pageName" required class="w-full px-4 py-2 bg-gray-600 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange text-gray-400 outline-none">
+				<input type="text" id="pageName" required class="w-full px-4 py-2 bg-gray-600 border border-gray-500 dark:bg-gray-800 rounded-lg focus:ring-2 focus:ring-orange text-gray-400 outline-none">
 			</div>
 			
 			<div>
 				<label for="pageHeader" class="block text-sm font-medium text-gray-400 mb-2">Header *</label>
-				<input type="text" id="pageHeader" required class="w-full px-4 py-2 bg-gray-600 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange text-gray-400 outline-none">
+				<input type="text" id="pageHeader" required class="w-full px-4 py-2 bg-gray-600 border border-gray-500 dark:bg-gray-800 rounded-lg focus:ring-2 focus:ring-orange text-gray-400 outline-none">
 			</div>
 			
 			<div>
 				<label for="pageDescriptionShort" class="block text-sm font-medium text-gray-400 mb-2">Short Description (255 Characters max)</label>
-				<textarea id="pageDescriptionShort" maxlength="255" class="w-full px-4 py-2 bg-gray-600 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange text-gray-400 outline-none"></textarea>
+				<textarea id="pageDescriptionShort" maxlength="255" class="w-full px-4 py-2 bg-gray-600 border border-gray-500 dark:bg-gray-800 rounded-lg focus:ring-2 focus:ring-orange text-gray-400 outline-none"></textarea>
 			</div>
 			
 			<div>
@@ -174,7 +174,7 @@ foreach ($allPages as $page) {
 						<i data-lucide="external-link" class="w-3 h-3 inline"></i> Markdown Guide
 					</a>
 				</label>
-				<textarea id="pageDescription" rows="6" class="w-full px-4 py-2 bg-gray-600 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange text-gray-400 outline-none font-mono text-sm"></textarea>
+				<textarea id="pageDescription" rows="6" class="w-full px-4 py-2 bg-gray-600 border border-gray-500 dark:bg-gray-800 rounded-lg focus:ring-2 focus:ring-orange text-gray-400 outline-none font-mono text-sm"></textarea>
 			</div>
 			
 			<div>
@@ -184,12 +184,12 @@ foreach ($allPages as $page) {
 						<i data-lucide="external-link" class="w-3 h-3 inline"></i> Browse Icons
 					</a>
 				</label>
-				<input type="text" id="pageIcon" placeholder="e.g., home, user, settings" class="w-full px-4 py-2 bg-gray-600 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange text-gray-400 outline-none">
+				<input type="text" id="pageIcon" placeholder="e.g., home, user, settings" class="w-full px-4 py-2 bg-gray-600 border border-gray-500 dark:bg-gray-800 rounded-lg focus:ring-2 focus:ring-orange text-gray-400 outline-none">
 			</div>
 			
 			<div>
 				<label class="flex items-center gap-2 cursor-pointer">
-					<input type="checkbox" id="pageIsActive" class="w-4 h-4 rounded border-gray-600 bg-gray-600 text-orange focus:ring-2 focus:ring-orange">
+					<input type="checkbox" id="pageIsActive" class="w-4 h-4 rounded border-gray-500 bg-gray-600 text-orange focus:ring-2 focus:ring-orange">
 					<span class="text-sm font-medium text-gray-400">Active (visible in navigation)</span>
 				</label>
 			</div>
@@ -294,15 +294,26 @@ document.addEventListener('DOMContentLoaded', function() {
 			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify(payload)
 		})
-		.then(response => response.json())
-		.then(data => {
+		.then(response => {
+			const contentType = response.headers.get('content-type');
+			if (!contentType || !contentType.includes('application/json')) {
+				return response.text().then(text => {
+					console.error('Non-JSON response (' + response.status + '):', text);
+					throw new Error('Server returned non-JSON response (HTTP ' + response.status + '). See console for details.');
+				});
+			}
+			return response.json().then(data => ({ data, status: response.status }));
+		})
+		.then(({ data, status }) => {
 			if (data.success) {
 				location.reload();
 			} else {
+				console.error('API error (' + status + '):', data);
 				alert((isEditMode ? 'Error updating page: ' : 'Error adding page: ') + (data.error || 'Unknown error'));
 			}
 		})
 		.catch(error => {
+			console.error('Fetch error:', error);
 			alert('Error: ' + error.message);
 		});
 	});

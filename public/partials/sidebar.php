@@ -57,7 +57,7 @@ foreach ($filteredPages as $page) {
 			<?php 
 			foreach ($parentPages as $parent): 
 				$hasChildren = isset($childPages[$parent['id']]) && !empty($childPages[$parent['id']]);
-				$showSeparator = ($parent['id'] == 10);
+				$showSeparator = ($parent['id'] == 25);
 			?>
 				<li <?= $showSeparator ? 'class="pt-2 mt-2 border-t border-gray-300 dark:border-gray-600"' : '' ?>>
 					<?php if ($hasChildren): ?>
